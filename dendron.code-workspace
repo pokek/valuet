@@ -1,0 +1,49 @@
+{
+    "folders": [
+        {
+            "path": "dependencies/localhost/attempt/notes",
+            "name": "attempt"
+        },
+        {
+            "path": "dependencies/localhost/language/notes",
+            "name": "language"
+        },
+        {
+            "path": "notes"
+        },
+        {
+            "name": "Dendron",
+            "path": "."
+        }
+    ],
+    "settings": {
+        "dendron.rootDir": ".",
+        "pasteImage.path": "${currentFileDir}/assets/images",
+        "pasteImage.prefix": "/",
+        "markdown-preview-enhanced.enableWikiLinkSyntax": true,
+        "markdown-preview-enhanced.wikiLinkFileExtension": ".md",
+        "editor.snippetSuggestions": "inline",
+        "editor.suggest.snippetsPreventQuickSuggestions": false,
+        "editor.suggest.showSnippets": true,
+        "editor.tabCompletion": "on",
+        "dendron.enableSelfContainedVaultWorkspace": true,
+        "markdown-preview-enhanced.automaticallyShowPreviewOfMarkdownBeingEdited": true
+    },
+    "extensions": {
+        "recommendations": [
+            "dendron.dendron",
+            "dendron.dendron-paste-image",
+            "dendron.dendron-markdown-shortcuts",
+            "redhat.vscode-yaml",
+            "dendron.dendron-markdown-preview-enhanced",
+            "shd101wyy.markdown-preview-enhanced",
+            "ms-vscode.cpptools"
+        ],
+        "unwantedRecommendations": [
+            "dendron.dendron-markdown-links",
+            "dendron.dendron-markdown-notes",
+            "kortina.vscode-markdown-notes",
+            "mushan.vscode-paste-image"
+        ]
+    }
+}
