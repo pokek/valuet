@@ -2,7 +2,7 @@
 id: a2ix85rnhq20pjllm3i9s05
 title: '2022-09-07'
 desc: ''
-updated: 1662539080716
+updated: 1662557313176
 created: 1662516924640
 traitIds:
   - journalNote
@@ -54,3 +54,12 @@ Based on the journaling method created by Intelligent Change:
 9. 局域网访问外网过程
 
 ![](/assets/images/2022-09-07-16-19-19.png)
+
+## 21点20分
+
+### 东软笔试
+
+1. 内部类==权限修饰符==比外部类==多了private,protected==，外部类有public,defalut；内部类修饰符比外部类==多了static==，外部类有abstract,final。
+2. 十六进制0x16f,==八进制018==(0开头);
+3. float o = 12.0(==编译出错，12.0默认为double型==)
+4. ==switch()条件不能为double==，可以为int,char,short,byte
