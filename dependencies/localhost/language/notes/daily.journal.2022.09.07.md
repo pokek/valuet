@@ -2,7 +2,7 @@
 id: a2ix85rnhq20pjllm3i9s05
 title: '2022-09-07'
 desc: ''
-updated: 1662538775499
+updated: 1662539080716
 created: 1662516924640
 traitIds:
   - journalNote
@@ -52,4 +52,5 @@ Based on the journaling method created by Intelligent Change:
 7. icmp,telnet(远程登录)都属于TCP/IP
 8. arp(四层模型属于网络层，七层模型属于链路层)地址解析协议，由ip地址解析成mac地址
 9. 局域网访问外网过程
+
 ![](/assets/images/2022-09-07-16-19-19.png)
