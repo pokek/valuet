@@ -2,7 +2,7 @@
 id: a2ix85rnhq20pjllm3i9s05
 title: '2022-09-07'
 desc: ''
-updated: 1662557313176
+updated: 1662565762328
 created: 1662516924640
 traitIds:
   - journalNote
@@ -63,3 +63,11 @@ Based on the journaling method created by Intelligent Change:
 2. 十六进制0x16f,==八进制018==(0开头);
 3. float o = 12.0(==编译出错，12.0默认为double型==)
 4. ==switch()条件不能为double==，可以为int,char,short,byte
+5. 自动装拆箱.valueOf(),intValue()
+6. 包装类型缓存机制：valueOf()和initCache类，其中四种整型包装类(-128-127)和Character(0-127)和Boolean(TRUE,FALSE)有包装类，浮点型没有
+7. 八种基本类型：byte,short,long,int, float,double, boolean, character
+8. 变长参数 String... args
+9. 重写遵循两同两小一大
+10. 基本数据类型做为局部变量存储在栈上，成员变量(非static)存储在堆中。大多数对象分配在堆上(JIT的逃逸分析，标量匹配分配对象到栈上)。
+11. 重写时父类private，final，static重写不了，但static可以声明
+
