@@ -2,7 +2,7 @@
 id: a2ix85rnhq20pjllm3i9s05
 title: '2022-09-07'
 desc: ''
-updated: 1662565762328
+updated: 1662565910627
 created: 1662516924640
 traitIds:
   - journalNote
@@ -70,4 +70,5 @@ Based on the journaling method created by Intelligent Change:
 9. 重写遵循两同两小一大
 10. 基本数据类型做为局部变量存储在栈上，成员变量(非static)存储在堆中。大多数对象分配在堆上(JIT的逃逸分析，标量匹配分配对象到栈上)。
 11. 重写时父类private，final，static重写不了，但static可以声明
+12. default可在接口中定义默认实现方法，但在类中方法加default会编译异常
 
