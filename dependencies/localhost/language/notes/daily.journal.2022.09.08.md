@@ -2,7 +2,7 @@
 id: n66uz7vh7rjkqrsetuo0a05
 title: '2022-09-08'
 desc: ''
-updated: 1662623486264
+updated: 1662624338597
 created: 1662601618132
 traitIds:
   - journalNote
@@ -26,7 +26,7 @@ Based on the journaling method created by Intelligent Change:
 2. possible_keys(查找该记录可能需要的键)，keys(查找该记录真正用到的键),keys一定出现在possible_keys中；
 3. xtra: -using where -using temporary(一般group by,order by出现较多，有一个中间缓存存储中间结果) -using filesort(order by如果没用到索引，就采用此方法)
 
-### 一些sql优化手段和什么时候用索引，什么时候不用索引
+### 一些sql优化手段和什么时候用索引，什么时候不用索引以及union关键字
 
 #### sql优化手段
 
@@ -46,3 +46,9 @@ Based on the journaling method created by Intelligent Change:
 1. 经常增删改的字段就不用
 2. 字段重复值多就不用
 3. 表记录太少无需建索引，少于200条记录，mysql直接把全部记录加载进内存查找，查找速度已经很快
+
+#### union关键字
+
+union关键字可以把不同表的不同字段的记录(但列数必须相等)合并起来成为一张新表。
+> ![](/assets/images/2022-09-08-16-04-35.png)
+> ![](/assets/images/2022-09-08-16-05-06.png)
