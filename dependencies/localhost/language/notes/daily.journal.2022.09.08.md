@@ -2,7 +2,7 @@
 id: n66uz7vh7rjkqrsetuo0a05
 title: '2022-09-08'
 desc: ''
-updated: 1662624338597
+updated: 1662649917876
 created: 1662601618132
 traitIds:
   - journalNote
@@ -52,3 +52,58 @@ Based on the journaling method created by Intelligent Change:
 union关键字可以把不同表的不同字段的记录(但列数必须相等)合并起来成为一张新表。
 > ![](/assets/images/2022-09-08-16-04-35.png)
 > ![](/assets/images/2022-09-08-16-05-06.png)
+
+## 23点09分
+
+Leecode 93. [复原 IP 地址](https://leetcode.cn/problems/restore-ip-addresses/)
+
+```java
+class Solution {
+    List<String> res = new ArrayList<>();
+    int[] segements = new int[4];
+    public List<String> restoreIpAddresses(String s) {
+        dfs(s, 0, 0);
+        return res;
+
+    }
+    
+    // 从start开始搜索满足条件的sectId位置
+    public void dfs(String s, int sectId, int start){
+        if(sectId == 4){
+            if(start == s.length()){
+                StringBuilder sb = new StringBuilder();
+                for(int i = 0; i < segements.length; i++){
+                    sb.append(segements[i]);
+                    if(i < 3){
+                        sb.append(".");
+                    }
+                }
+                res.add(sb.toString());
+            }
+            return;
+        }
+
+        if(start == s.length()){
+            return;
+        }
+
+        if(s.charAt(start) == '0'){
+            segements[sectId] = 0;
+            dfs(s, sectId + 1, start + 1);
+            return;
+
+        }
+        // 每一个搜索初始值为0
+        int temp = 0;
+        for(int end = start; end < s.length(); end++){
+            temp = temp * 10 + (s.charAt(end) - '0');
+            if(temp > 0 && temp <= 0xFF){
+                segements[sectId] = temp;
+                dfs(s, sectId + 1, end + 1);
+            }else{
+                break;
+            }
+        }               
+    }
+}
+```
