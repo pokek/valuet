@@ -2,7 +2,7 @@
 id: x731oq1p809x3fzmtzlojg7
 title: '2022-09-11'
 desc: ''
-updated: 1662907502904
+updated: 1662907693367
 created: 1662882292806
 traitIds:
   - journalNote
@@ -25,6 +25,7 @@ Based on the journaling method created by Intelligent Change:
 1. [数字转为1的操作次数](https://blog.csdn.net/zhang_1218/article/details/73137180)
 2. [加分树计算](https://blog.csdn.net/zhang_1218/article/details/73137180)
 3. [股票交易不含手续费](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-iv/)
+4. 客户端new socket()与服务端建立通信，服务端new ServerSocket()生成TCP连接对象。
 
 ### 迭代与递归的区别
 
