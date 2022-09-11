@@ -2,7 +2,7 @@
 id: x731oq1p809x3fzmtzlojg7
 title: '2022-09-11'
 desc: ''
-updated: 1662891578195
+updated: 1662902957168
 created: 1662882292806
 traitIds:
   - journalNote
@@ -25,3 +25,8 @@ Based on the journaling method created by Intelligent Change:
 1. [数字转为1的操作次数](https://blog.csdn.net/zhang_1218/article/details/73137180)
 2. [加分树计算](https://blog.csdn.net/zhang_1218/article/details/73137180)
 3. [股票交易不含手续费](https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-iv/)
+
+### 迭代与递归的区别
+
+1. 迭代：每一个都在上一次结果中进行相关推理，如迭代表达式;(DNS迭代查询)
+2. 递归：表示一个重复行为(DNS递归查询)
