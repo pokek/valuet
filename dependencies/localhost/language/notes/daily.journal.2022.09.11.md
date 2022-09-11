@@ -2,7 +2,7 @@
 id: x731oq1p809x3fzmtzlojg7
 title: '2022-09-11'
 desc: ''
-updated: 1662906685244
+updated: 1662907502904
 created: 1662882292806
 traitIds:
   - journalNote
@@ -31,7 +31,8 @@ Based on the journaling method created by Intelligent Change:
 1. 迭代：每一个都在上一次结果中进行相关推理，如迭代表达式;(DNS迭代查询)
 2. 递归：表示一个重复行为(DNS递归查询)
 
-### JAVA的继承与多态
+### JAVA的继承与多态和抽象类与接口
 
 1. 子类继承父类所有属性和方法，对于访问权限为private的属性和方法不能访问，但还是==拥有==
 2, 多态就是一个对象有多种状态，实现方法就是父类引用指向子类对象;
+3. 抽象类是为了代码复用，接口是对对象行为的约束;
