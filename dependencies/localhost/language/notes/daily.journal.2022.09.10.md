@@ -1,12 +1,12 @@
 ---
 id: 2hk9so3u6ari7xipw6yxxvw
-title: '2022-09-10'
-desc: ''
-updated: 1662812337410
+title: 2022-09-10
+desc: 
+updated: 1662831360
 created: 1662779852525
-traitIds:
-  - journalNote
+traitIds: [journalNote]
 ---
+
 This template was applied using the daily journal schema. Edit the [[templates.daily]] note to change this template.
 To create your own schemas to auto-apply templates when they match a hierarchy, follow the [schema tutorial](https://blog.dendron.so/notes/P1DL2uXHpKUCa7hLiFbFA/) to get started.
 
@@ -105,6 +105,7 @@ select ..distinct.. from ..join..on.. where..group by..having..union...order by.
 5. group by
 6. having(筛选聚合字段结果)
 7. distinct
+8. select
 8. union
 9. order by
 10. limit
