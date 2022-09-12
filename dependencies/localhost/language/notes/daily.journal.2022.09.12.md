@@ -2,7 +2,7 @@
 id: dm7ngq2hebdlyc2ny1u17f9
 title: '2022-09-12'
 desc: ''
-updated: 1662990219410
+updated: 1662998625774
 created: 1662949086650
 traitIds:
   - journalNote
@@ -152,3 +152,5 @@ TCP三次握手 ACK 和 ack 的区别 ，ACK 是 一个确认字符；ack代表�
 
 1. [Leecode 151. 反转字符串中的单词](https://leetcode.cn/problems/reverse-words-in-a-string/)
 `空格字符串的长度为0，" ".length() = 0`
+2. [Leecode 413. 等差数列划分](https://leetcode.cn/problems/arithmetic-slices/)
+`额外知识：滚动数组类似于状态压缩`
