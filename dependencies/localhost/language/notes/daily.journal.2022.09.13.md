@@ -2,7 +2,7 @@
 id: 5azwwx88jli05iu60kjaupv
 title: '2022-09-13'
 desc: ''
-updated: 1663079170217
+updated: 1663083341054
 created: 1663069486381
 traitIds:
   - journalNote
@@ -37,3 +37,12 @@ Based on the journaling method created by Intelligent Change:
 ![](/assets/images/2022-09-13-22-25-53.png)
 ![](/assets/images/2022-09-13-22-25-27.png)
 ![](/assets/images/2022-09-13-22-26-05.png)
+
+### Mysql死锁
+
+1. 有一点很重要，就是使用insert.、delete、update这三个DML语句的时候，innDB引擎 会自动给涉及到的数据加上行级 排他锁，
+所以加过排他锁的数据行在其他事务中是不能修改数据的，也不能通过for update和lock in share mode锁的方式查询数据
+
+2. 只要加过排他锁就不能再进行 insert delete update了,也不能再加锁,相当于是不可重入锁，只能加一次
+
+[死锁讲解博文](https://longcj.blog.csdn.net/article/details/122932768)
