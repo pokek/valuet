@@ -2,7 +2,7 @@
 id: 5azwwx88jli05iu60kjaupv
 title: '2022-09-13'
 desc: ''
-updated: 1663083341054
+updated: 1663087058185
 created: 1663069486381
 traitIds:
   - journalNote
@@ -46,3 +46,12 @@ Based on the journaling method created by Intelligent Change:
 2. 只要加过排他锁就不能再进行 insert delete update了,也不能再加锁,相当于是不可重入锁，只能加一次
 
 [死锁讲解博文](https://longcj.blog.csdn.net/article/details/122932768)
+
+### 操作系统的阻塞与睡眠和挂起
+
+阻塞：进行I/O操作而导致程序无法继续执行；
+睡眠：多个进程使用临界资源，未获取资源的进程停止执行（睡眠）等待
+挂起：一些阻塞的进程暂时用不到内存资源，就先将其换入外存
+阻塞和睡眠都还在内存；挂起被搁置到了外存
+阻塞进程在做I/O操作，睡眠进程只有等待
+- [ ] [讲解连接](https://www.cnblogs.com/ck1020/p/6669661.html)
