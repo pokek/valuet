@@ -2,7 +2,7 @@
 id: 5azwwx88jli05iu60kjaupv
 title: '2022-09-13'
 desc: ''
-updated: 1663087058185
+updated: 1663087553525
 created: 1663069486381
 traitIds:
   - journalNote
@@ -54,4 +54,5 @@ Based on the journaling method created by Intelligent Change:
 挂起：一些阻塞的进程暂时用不到内存资源，就先将其换入外存
 阻塞和睡眠都还在内存；挂起被搁置到了外存
 阻塞进程在做I/O操作，睡眠进程只有等待
+
 - [ ] [讲解连接](https://www.cnblogs.com/ck1020/p/6669661.html)
