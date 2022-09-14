@@ -2,7 +2,7 @@
 id: rkrd2aeu51atw6k0evyr3t2
 title: '2022-09-14'
 desc: ''
-updated: 1663132871683
+updated: 1663140053140
 created: 1663123903496
 traitIds:
   - journalNote
@@ -18,9 +18,9 @@ Based on the journaling method created by Intelligent Change:
 
 # 2022年9月14日
 
-## 一些疑惑
+## 10点42分
 
-### 进程状态相关
+### 进程状态相关的一些疑惑
 
 1. 进程阻塞和睡眠，进程如何进行并发，两个进程，一个cpu，其中一个进程阻塞，如何进行调度的(java两个线程，一个线程堵塞，该线程是会一直堵塞着，另一个线程还是正常调度)
 阻塞：遇到阻塞程序事件(如等待io，等待其它事件等)，进入阻塞状态，释放cpu时间片，cpu不再调度，(就绪态才被cpu调度)
@@ -43,3 +43,21 @@ Based on the journaling method created by Intelligent Change:
 10. 操作系统提供了基于进程的API和基于线程的API。
 
 11. 操作系统的内存管理，文件管理，还有c++的内存模型
+
+## 14点42分
+
+### java的线程6种状态
+
+1. new
+2. runing
+3. redy
+4. waiting
+5. time_waiting
+6. blocking
+
+特别注意的一点：给线程标记这些状态都是为了充分利用cpu，如thread.sleep(1000l)，线程处于time_wating状态，底层实现将其加入等待队列中，等待cpu调度，但不会释放锁
+
+![](/assets/images/2022-09-14-14-51-44.png)
+
+个人猜测，操作系统对进度的调度设计架构，也是根据相应的状态信息，放入相应队列进行调度，如已经准备好的队列就分配cpu时间片，其它状态就放入其它队列中，觉得有点类似AQS实现，学习的时候可作为一种类比s方向。
+(学习课程：哈工大操作系统课程)
