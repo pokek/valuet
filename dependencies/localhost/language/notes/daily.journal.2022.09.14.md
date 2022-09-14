@@ -2,7 +2,7 @@
 id: rkrd2aeu51atw6k0evyr3t2
 title: '2022-09-14'
 desc: ''
-updated: 1663140053140
+updated: 1663145999284
 created: 1663123903496
 traitIds:
   - journalNote
@@ -56,6 +56,8 @@ Based on the journaling method created by Intelligent Change:
 6. blocking
 
 特别注意的一点：给线程标记这些状态都是为了充分利用cpu，如thread.sleep(1000l)，线程处于time_wating状态，底层实现将其加入等待队列中，等待cpu调度，但不会释放锁
+
+yield()方法与sleep()类似，只是不能由用户指定暂停多长时间，并且yield（）方法只能让同优先级的线程有执行的机会，sleep()方法让其它线程有执行的机会
 
 ![](/assets/images/2022-09-14-14-51-44.png)
 
