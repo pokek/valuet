@@ -2,7 +2,7 @@
 id: 27p0dl1lvq46sqwy3ccln45
 title: '2022-09-17'
 desc: ''
-updated: 1663388218065
+updated: 1663398934650
 created: 1663379868132
 traitIds:
   - journalNote
@@ -38,3 +38,8 @@ Based on the journaling method created by Intelligent Change:
 
 在原有序链表的基础之上，通过建立索引层优化查询效率，当数据量大的时候可通过多增加索引层数，来提高查询效率。
 ![](/assets/images/2022-09-17-12-16-48.png)
+
+### 排序
+
+1. 希尔排序是在直接插入排序基础上而来的。
+2. 选择排序步骤：依次选择0~n-1,1~n-1,2~n-1...的最小值防止区间索引首部，插入排序步骤：依次保持0~0,0~1,0~2,...,0~n-1区间的有序性;
