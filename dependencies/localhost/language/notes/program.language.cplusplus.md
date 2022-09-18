@@ -2,7 +2,7 @@
 id: 93zexi6w3jtzv3m1zs1y8i8
 title: Cplusplus
 desc: ''
-updated: 1663168135422
+updated: 1663495414816
 created: 1663086634150
 ---
 
@@ -26,3 +26,5 @@ int main(){
     return -1;
 }
 ```
+
+[[函数声明|daily.journal.2022.09.16#函数声明]]
