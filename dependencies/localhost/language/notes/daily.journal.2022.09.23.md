@@ -2,7 +2,7 @@
 id: 59lebbcuy4n12yc1glc8gfb
 title: '2022-09-23'
 desc: ''
-updated: 1663945198613
+updated: 1663985958398
 created: 1663940172143
 traitIds:
   - journalNote
@@ -32,6 +32,7 @@ resize()        初始化底层数组以及扩容
 tableSizeFor()  确定size阈值大小(接近2的次幂)
 HashMap()       确定HashMap相关属性，确定了loader_factor
 HashMap(int capacity，float loadFactor)   确定HashMap相关属性，确定了loader_factor和size阈值大小
+hash()          由key生成node节点的hash值s
 **总结**：都是为了元素在HashMap中分布比较均匀。
 
 #### 默认构造及扩容流程
