@@ -2,12 +2,12 @@
 id: bjw2gf434xujtw695v3i2yk
 title: '2022-09-09'
 desc: ''
-updated: 1662704705511
+updated: 1665396354013
 created: 1662704487491
 traitIds:
   - journalNote
 ---
-This template was applied using the daily journal schema. Edit the [[templates.daily]] note to change this template.
+**This** template was applied using the daily journal schema. Edit the [[templates.daily]] note to change this template.
 To create your own schemas to auto-apply templates when they match a hierarchy, follow the [schema tutorial](https://blog.dendron.so/notes/P1DL2uXHpKUCa7hLiFbFA/) to get started.
 
 <!--

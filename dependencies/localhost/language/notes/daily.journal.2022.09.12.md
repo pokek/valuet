@@ -2,7 +2,7 @@
 id: dm7ngq2hebdlyc2ny1u17f9
 title: '2022-09-12'
 desc: ''
-updated: 1662998625774
+updated: 1665399555225
 created: 1662949086650
 traitIds:
   - journalNote
@@ -41,9 +41,9 @@ Based on the journaling method created by Intelligent Change:
 
 1. str.getChars()把str拼到dst字符串后面，采用System.arrayCopy()
 2. string不可变是线程安全的
-3. `new String("abc")`创建1个或者2个字符串对象，ldc会判断字符串常量池中是否有字符串"abc"的引用，有就返回，无就创建并把引用放入字符串常量池中
+3. `new String("abc")`创建1个或者2个字符串对象，ldc会判断字符串常量池中是否有字符串"abc"的引用，有就返回，无就创建并把引用放入字符串常量池中---（现在堆中创建一个对象，然后判断stringTable中有没有，没有再创一个并放入该对象引用，有则不创建，非静态引用都是在栈当中，从这可以看出new无论如何都会创建一个对象，因此就提供了intern()方法）
 4. `String str = new String("a") + new String("b")`执行后，字符串常量池中并没有字符串"ab"的引用
-5. string.intern()判断是否可以从字符串常量池中找到该字符串引用，有则直接返回，无则(1.6和1.8不同)把自身对象引用放入字符串常量池中
+5. string.intern()判断是否可以从字符串常量池中找到该字符串对象引用，有则直接返回，无则(1.6和1.8不同)把对象引用放入字符串常量池中
 
 ```java {.line-numbers, highlight=[4, 10]}
 // 1.6
