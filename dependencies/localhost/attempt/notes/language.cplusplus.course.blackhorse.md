@@ -2,7 +2,7 @@
 id: y3riuz15bl7j8354zs61mdu
 title: Blackhorse
 desc: ''
-updated: 1666022630453
+updated: 1666170900120
 created: 1665755934762
 ---
 ## CPlusPlus基础
@@ -2600,7 +2600,7 @@ int main() {
 
 ### 设计字符串类
 
-```cpp
+```cpp {.line-numbers, highlight=[75-76]}
 // 自写字符串
 #include <cstring>
 #include <iostream>
@@ -2675,7 +2675,8 @@ MyString& MyString::operator=(MyString const& src) {
 }
 MyString MyString::operator+(char const* ptr) {
   int new_size = length_ + strlen(ptr) + 1;
-  char* tmp    = new char[new_size];
+  char* tmp    = new char[new_size]; // 新开一片拼接字符串后大小的内存，防止内存溢出
+  // strcat(des, src)函数返回des的指针（在des的内存大小基础上进行拼接字符串），当des指针被释放时，后面拼接的字符串释放不了，导致内存泄漏
   strcat(tmp, this->chr_ptr_);
   strcat(tmp, ptr);
   MyString res(tmp);
@@ -2719,7 +2720,7 @@ int main() {
 
 ```
 
-```cpp {.line-numbers, highlight=[7]}
+```cpp {.line-numbers, highlight=[1, 7]}
 // 开辟内置类型堆空间时记得初始化零值
 #include <cstring>
 #include <iostream>
@@ -2898,7 +2899,7 @@ int main(){
 
 ### 继承中的构造和析构函数
 
-```cpp {.line-numbers, highlight=[80-82]}
+```cpp {.line-numbers, highlight=[80-85, 104, 107-108]}
 #define _CRT_SECURE_NO_WARNINGS
 #include<iostream>
 using namespace std;
@@ -2979,6 +2980,492 @@ int main(){
 }
 
 // 在继承中，派生类的拷贝构造是否自动调用基类的拷贝构造???????????
-// 在继承中，派生类赋值运算符是否继承基类赋值运算符?????????????????
+// 在继承中，派生类赋值运算符是否继承基类赋值运算符----答：派生类不继承基类赋值运算符
 // 在继承中，派生类的默认构造自动调用基类的默认构造
+// 继承，虚函数，多态关系？？？？？？？？？？？？？？？？？
+// 待验证？？？？通过下表可知赋值运算符不可以继承，但可以是虚函数，不可继承可以这样理解，当赋值时候每个对象都是得把自己内存的东西赋值给相应类型对象，就好像人自己把东西需要赋给与自己同样的一类人。
+// 待验证？？？？？？而虚函数是在实现多态作用，使得运行时候能够确定真正的类型对象所要进行的赋值运算，继承和虚函数并没有联系，但两者共同使得能够实现多态机制
+
+
+#include <iostream>
+
+class Student {};
+
+class Home : public Student {};
+
+void test01(Student& stu) {
+  std::cout << "a is on" << std::endl;
+}
+
+void test01(Home& home) {
+  std::cout << "a" << std::endl;
+}
+
+auto main() -> int {
+  Home home;
+  test01(home); // 重载更加具体化的函数
+}
+
+// 待验证？？？？？？----对于java中类型判定和强转的一些理解，java中的isInstanceOf相当于是运行时先进行查一个对象信息表然后判定确切类型，判定通过，就查虚函数表进行函数调用
+// 其中强转可以自由从Objec转任意子类，有点类似子类有个显示转换构造函数，如Object ob = new Object(); ArrayList nums = (ArrayList) ob;
 ```
+
+![](/assets/images/2022-10-18-13-51-44.png)
+
+![](/assets/images/2022-10-18-14-33-26.png)
+
+![](/assets/images/2022-10-18-14-33-02.png)
+
+### 继承中同名函数处理
+
+```cpp {.line-numbers, highlight=[53, 57-59]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+
+class Base
+{
+public:
+ Base()
+ {
+  m_A = 100;
+ }
+
+ void fun()
+ {
+  cout << "Base func调用" << endl;
+ }
+ void fun(int a)
+ {
+  cout << "Base func (int a)调用" << endl;
+ }
+
+
+ int m_A;
+};
+
+class Son :public Base
+{
+public:
+ Son()
+ {
+  m_A = 200;
+ }
+
+ void fun()
+ {
+  cout << "Son func调用" << endl;
+ }
+
+ int m_A;
+};
+
+void test01()
+{
+ Son s1;
+ cout << s1.m_A << endl;
+ //想调用 父类中 的m_A
+
+ cout << s1.Base::m_A << endl;
+
+ s1.fun();
+
+ //调用父类的func
+ s1.Base::fun(10);
+
+}
+
+//如果子类和父类拥有同名的函数 属性 ，子类会覆盖父类的成员吗？ 不会
+//如果子类与父类的成员函数名称相同，子类会把父类的所有的同名版本都隐藏掉
+//想调用父类的方法，必须加作用域
+
+
+int main(){
+
+ test01();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 继承中静态成员处理
+
+```cpp {.line-numbers, highlight=[45]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+
+class Base
+{
+public:
+
+ static void func()
+ {
+  cout << "base fun()" << endl;
+ }
+ static void func(int a)
+ {
+  cout << "base fun(int)" << endl;
+ }
+
+
+ static int m_A;
+};
+int Base::m_A = 10;
+
+class Son :public Base
+{
+public:
+
+ static void func()
+ {
+  cout << "son fun()" << endl;
+ }
+
+ static int m_A;
+};
+int Son::m_A = 20;
+
+//静态成员属性 子类可以继承下来
+void test01()
+{
+ cout << Son::m_A << endl;
+ //访问父类的m_A
+ cout << Base::m_A << endl;
+
+ Son::func();
+ //访问 父类中同名的函数
+ Son::Base::func(10);   // 由子便可以访问父
+
+}
+
+
+int main(){
+
+ test01();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 多继承的概念和问题
+
+```cpp {.line-numbers, highlight=[36]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+
+class Base1
+{
+public:
+ Base1()
+ {
+  m_A = 10;
+ }
+public:
+ int m_A;
+};
+
+class Base2
+{
+public:
+ Base2()
+ {
+  m_A = 20;
+ }
+public:
+ int m_A;
+};
+
+//多继承
+class Son :public Base1, public Base2
+{
+public:
+
+ int m_C;
+ int m_D;
+};
+
+//多继承中很容易引发二义性
+void test01()
+{
+ cout << sizeof(Son) << endl;
+
+ Son s1;
+ //s1.m_A; //二义性
+
+ cout << s1.Base1::m_A << endl; 
+ cout << s1.Base2::m_A << endl;
+}
+
+int main(){
+
+ test01();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 菱形继承的概念和问题
+
+```cpp {.line-numbers, highlight=[11, 25-26, 39-40]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+
+class Animal
+{
+public:
+ int m_Age;
+};
+
+//虚基类 Sheep
+class Sheep :virtual public Animal
+{
+};
+//虚基类 Tuo
+class Tuo :virtual public Animal
+{
+};
+
+class SheepTuo :public Sheep, public Tuo
+{
+
+};
+
+// 菱形继承的问题，产生多份空间，产生资源浪费
+//菱形继承的解决方案 利用虚继承 之后操作的是共享的一份数据
+
+void test01()
+{
+ SheepTuo st;
+ st.Sheep::m_Age = 10;
+ st.Tuo::m_Age = 20;
+
+ cout << st.Sheep::m_Age << endl;
+ cout << st.Tuo::m_Age << endl;
+ cout << st.m_Age << endl; //可以直接访问，原因已经没有二义性的可能了，只有一份m_Age
+}
+
+//通过地址 找到 偏移量
+//内部工作原理
+void test02()
+{
+ SheepTuo st;
+ st.m_Age = 100;
+
+ //找到Sheep的偏移量操作
+ //cout<< *(int *)((int *)*(int *)&st + 1) << endl;
+
+ cout << *(int*)((int*)*(int *)&st + 1) << endl;
+
+ //找到Tuo的偏移量
+ cout << *((int *)((int *)*((int *)&st + 1) + 1)) << endl;
+ 
+ //输出Age
+ cout << ((Animal*)((char *)&st + *(int*)((int*)*(int *)&st + 1)))->m_Age << endl;
+
+}
+
+int main(){
+
+ //test01();
+ test02();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+![](/assets/images/2022-10-18-16-27-44.png)
+
+### 静态联编和动态联编
+
+```cpp {.line-numbers, highlight=[1, 35-36, 60]}
+// 多态为实现和定义之间提供了隔离性，便于代码阅读和拓展
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+
+class Animal
+{
+public:
+ virtual void speak()
+ {
+  cout << "动物在说话" << endl;
+ }
+
+ virtual void eat()
+ {
+  cout << "动物在吃饭" << endl;
+ }
+
+};
+
+class Cat :public Animal
+{
+public:
+ void speak()
+ {
+  cout << "小猫在说话" << endl;
+ }
+
+ virtual void eat()
+ {
+  cout << "小猫在吃鱼" << endl;
+ }
+};
+
+//调用doSpeak ，speak函数的地址早就绑定好了，早绑定，静态联编，编译阶段就确定好了地址
+//如果想调用猫的speak，不能提前绑定好函数的地址了，所以需要在运行时候再去确定函数地址
+//动态联编，写法 doSpeak方法改为虚函数,在父类上声明虚函数，发生了多态
+// 父类的引用或者指针 指向 子类对象
+void doSpeak(Animal & animal) //Animal & animal = cat
+{
+ animal.speak();
+}
+//如果发生了继承的关系，编译器允许进行类型转换
+
+void test01()
+{
+ Cat cat;
+ doSpeak(cat);
+
+}
+
+
+void test02()
+{
+ //cout << sizeof(Animal) << endl;
+ //父类指针指向子类对象 多态
+ Animal * animal = new Cat;
+
+ //animal->speak();
+ // *(int*)*(int*)animal 函数地址  编译器生成
+ ((void(*)()) (*(int*)*(int*)animal))();
+
+ //  *((int*)*(int*)animal+1)猫吃鱼的地址
+
+ ((void(*)()) (*((int*)*(int*)animal + 1)))();
+}
+
+int main(){
+
+ //test01();
+
+ test02();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+![](/assets/images/2022-10-19-15-16-49.png)
+
+### 多态案例-计算器案例
+
+```cpp {.line-numbers, highlight=[1-2]}
+// 继承和虚函数就是为了实现多态，方便设计开闭原则的代码，对外扩展，不修改源代码
+// 抽象基类与纯虚函数有关，抽象基类也有一个虚函数表指针，进行占位，但不提供实现函数地址
+```
+
+### 虚析构与纯虚析构
+
+```cpp {.line-numbers, highlight=[14-15, 21-25]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+
+class Animal
+{
+public:
+
+ virtual void speak()
+ {
+  cout << "动物在说话" << endl;
+ }
+
+ //普通析构 是不会调用子类的析构的，所以可能会导致释放不干净
+ //利用虚析构来解决这个问题
+ //virtual ~Animal()
+ //{
+ // cout << "Animal的析构调用" << endl;
+ //}
+
+ //纯虚析构 写法如下 
+ //纯虚析构 ，需要声明 还需要实现 类内声明，类外实现
+ virtual ~Animal() = 0;
+ //如果函数中出现了 纯虚析构函数，那么这个类也算抽象类
+ //抽象类 不可实例化对象
+
+};
+Animal::~Animal()
+{
+ //纯虚析构函数实现
+ cout << "Animal的纯虚析构调用" << endl;
+}
+// 如果出现纯虚析构，类也算抽象类，不能实例化对象
+//void func()
+//{
+// Animal an;
+// Animal * animal = new Animal;
+//}
+
+class Cat:public Animal
+{
+public:
+ Cat(const char * name)
+ {
+  this->m_Name = new char[strlen(name) + 1];
+  strcpy(this->m_Name, name);
+ }
+
+ virtual void speak()
+ {
+  cout << "小猫在说话" << endl;
+ }
+
+ ~Cat()
+ {
+  cout << "Cat的析构调用" << endl;
+  if (this->m_Name !=NULL)
+  {
+   delete[] this->m_Name;
+   this->m_Name = NULL;
+  }
+ }
+
+ char * m_Name;
+
+};
+
+
+void test01()
+{
+ Animal * animal = new Cat("TOM");
+ animal->speak();
+
+ delete animal;
+
+}
+
+
+int main(){
+
+ test01();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+![](/assets/images/2022-10-19-17-14-57.png)
