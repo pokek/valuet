@@ -2,7 +2,7 @@
 id: y3riuz15bl7j8354zs61mdu
 title: Blackhorse
 desc: ''
-updated: 1666170900120
+updated: 1666277945401
 created: 1665755934762
 ---
 ## CPlusPlus基础
@@ -3469,3 +3469,904 @@ int main(){
 ```
 
 ![](/assets/images/2022-10-19-17-14-57.png)
+
+```cpp {.line-numbers, highlight=[30, 33-40]}
+#include <iostream>
+class A {
+ private:
+  short val1;
+
+ public:
+  int val2;
+  double d;
+  static char ch;
+  virtual void funcA1() = 0;
+  ~A() {
+    std::cout << "A" << std::endl;
+  }
+};
+
+class B : public A {
+ public:
+  virtual void funcA1() {}
+  ~B() {
+    std::cout << "B" << std::endl;
+  }
+};
+
+int main() {
+  __attribute__((unused)) int k = sizeof(A);
+  __attribute__((unused)) int v = sizeof(B);
+  // __attribute__((unused)) A a;
+  // B b;
+  A* ptr = new B;
+  delete ptr;  // 输出 A
+}
+
+// 结论：基类成员函数为虚函数需要实现，派生类可实现也可不实现
+// 析构函数要为虚函数的原因由于，堆上创建创建子类对象后由父类指针指向后，编译器生成delete的时候，查找子类虚函数表中是否有对应析构，没有就调用父类析构；
+// 抽象基类的析构也要为虚函数，不然也保证不了堆上内存释放时的释放顺序
+// 虚表中内容动态绑定，其它静态绑定，函数绑定，变量分配地址
+
+// 查看对象内存模型 clang -Xclang -fdump-record-layouts    main函数中需要sizeof
+// 查看虚函数表clang -Xclang -fdump-vtable-layouts    main函数中需初始化
+// windows中 > 为命令行打印输出到文件，类似于unix中的 |
+
+```
+
+![](/assets/images/2022-10-20-12-05-41.png)
+
+### PK小游戏设计
+
+```cpp {.line-numbers, highlight=[1, 9, 26, 67]}
+// 头文件与头文件中互相包含时，可以在其中一个头文件中先进行声明，以使得可以过编译
+#pragma once 
+#include <iostream>
+#include "Weapon.h"
+#include <string>
+#include "Monster.h"
+using namespace std;
+
+class Monster;
+
+class Hero
+{
+public:
+ Hero();
+
+ string m_Name; //人名
+
+ int m_Atk; //攻击力
+
+ int m_Def; // 防御力
+
+ int m_Hp; //血量
+
+ Weapon * weapon; //武器
+
+ void EquipWeapon(Weapon * weapon); // hero类型维护的只是一个外面传来的指针，无需自己delete，由外面使用者自己释放
+
+ void Attack( Monster * monster );
+};
+
+// ----------------------------------------------
+#pragma once 
+#include <iostream>
+#include "Weapon.h"
+#include <string>
+#include "Hero.h"
+using namespace std;
+
+class Hero;
+
+class Monster
+{
+public:
+ Monster();
+
+ string m_Name;
+
+ int m_Hp;
+
+ int m_Atk;
+
+ int m_Def;
+
+ bool m_Hold;
+
+ void Attack(Hero * hero);
+
+};
+
+// ---------------------------------------------------
+#pragma once
+
+#include "Weapon.h"
+
+class DragonSword : public Weapon {
+ public:
+  DragonSword();  // 实现构造函数时不能直接使用父类成员初始化列表初始化父类成员，要用父类构造函数初始化父类成员
+  virtual int GetBaseDamage(); 
+  virtual int GetSuckBlood();
+  virtual bool GetHold();
+  virtual bool GetCrit();
+
+  int stuck_rate_;
+  int hold_rate_;
+  int crit_rate_;
+
+  bool IsTrigger(int rate);
+};
+
+```
+
+### 指向成员变量和成员函数的指针
+
+```cpp {.line-numbers, highlight=[23, 27]}
+#include <iostream>
+
+class Person {
+ public:
+  Person() : age_(20) {}
+  static int height;
+  int age_;
+  static void show();
+  int set();
+};
+
+int Person::height = 200;
+void Person::show() {
+  std::cout << "out" << std::endl;
+}
+int Person::set() {
+  std::cout << "set" << std::endl;
+}
+
+int main() {
+  Person p1;
+  // 指针指向静态成员变量和静态函数
+  int* ptr = &Person::height;  // 指向静态成员变量的指针，与普通变量一样，其不独自属于哪个对象
+  void (*ptr_function)() = &Person::show;
+  std::cout << *ptr << std::endl;
+  ptr_function();
+  // 指针指向非静态成员变量和非静态成员函数 ????????????????????
+  int Person::*p_tr = &Person::age_;
+  std::cout << p1.*p_tr << std::endl;
+  int (Person::*p_function)() = &Person::set;
+  (p1.*p_function)();
+}
+
+```
+
+### 函数模板的基本用法
+
+```cpp {.line-numbers, highlight=[22, 42, 46, 49]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+
+//交换int类型两个数字
+void mySwapInt( int & a, int & b)
+{
+ int tmp = a;
+ a = b;
+ b = tmp;
+}
+
+//交换double数据
+void mySwapDouble(double &a, double &b)
+{
+ double tmp = a;
+ a = b;
+ b = tmp;
+}
+
+//类型，逻辑又非常相似
+//类型参数化  泛型编程 -- 模板技术
+template<class T> // 告诉编译器 下面如果出现T不要报错，T是一个通用的类型
+void mySwap(T &a, T &b)
+{
+ T tmp = a;
+ a = b; 
+ b = tmp;
+}
+
+
+// template<typename T>  等价于 template<class T>
+template<typename T>
+void mySwap2(){}
+
+void test01()
+{
+ int a = 10;
+ int b = 20;
+ char c1 = 'c';
+// mySwapInt(a, b);
+ //1 自动类型推导,必须有参数类型才可以推导
+ //mySwap(a, c1); 推导不出来T，所以不能运行
+ mySwap(a, b);
+
+ //2 显示指定类型
+ mySwap<int>(a, b);
+
+ //模板必须要指定出T才可以使用
+ mySwap2<double>();
+
+ cout << "a = " << a << endl;
+ cout << "b = " << b << endl;
+
+ double c = 3.14;
+ double d = 1.1;
+ //mySwapDouble(c, d);
+ mySwap(c, d);
+
+
+}
+
+int main(){
+
+ test01();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 利用模板实现任意类型数组排序
+
+```cpp
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+
+//对char和int数组进行排序  排序规则 从大到小  利用选择排序
+
+template <class T>
+void mySwap( T &a, T &b)
+{
+ T tmp = a;
+ a = b;
+ b = tmp;
+}
+
+
+template<class T>
+void mySort( T arr[], int len )
+{
+ for (int i = 0; i < len;i++)
+ {
+  int max = i;
+  for (int j = i + 1; j < len;j++)
+  {
+   if (arr[max] < arr[j])
+   {
+    //交换 下标
+    max = j;
+   }
+  }
+  if (max != i)
+  {
+   //交换数据
+   mySwap(arr[max], arr[i]);
+  }
+ }
+}
+
+//输出数组元素的模板
+template<class T>
+void printArray( T arr[], int len)
+{
+ for (int i = 0; i < len;i++)
+ {
+
+  cout << arr[i] << " ";
+ }
+ cout << endl;
+}
+
+void test01()
+{
+ char charArr[] = "helloworld";
+ int num = sizeof(charArr) / sizeof(char);
+ mySort(charArr, num);
+ printArray(charArr, num);
+
+
+ int intArr[] = { 1, 4, 100, 34, 55 };
+ int num2 = sizeof(intArr) / sizeof (int);
+ mySort(intArr, num2);
+ printArray(intArr, num2);
+
+}
+
+
+int main(){
+
+ test01();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 函数模板与普通函数的区别与调用规则
+
+```cpp {.line-numbers, highlight=[23 , 39]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+
+
+//1 普通函数与函数模板区别
+template<class T>
+T myPlus(T a, T b)
+{
+ return a + b;
+}
+
+int myPlus2(int a, int b)
+{
+ return a + b;
+}
+
+void test01()
+{
+ int a = 10;
+ int b = 20;
+ char c = 'c'; // a = 97 
+// myPlus(a, c); //类型推导不出来 ,函数模板不可以进行隐式类型转换
+ cout << myPlus2(a, c) <<endl; // 10 + 99  普通函数 可以进行隐式类型转换
+}
+
+//2 、普通函数和函数模板的调用规则
+template<class T>
+void myPrint(T a ,T b)
+{
+ cout << "模板调用的myPrint" << endl;
+}
+
+template<class T>
+void myPrint(T a, T b ,T c)
+{
+ cout << "模板调用的myPrint(a,b,c)" << endl;
+}
+////通过模板生成的函数  叫模板函数 function of template   template of function 模板是有二次编译
+//void myPrint(int a, int b, int c)
+//{
+//
+//}
+
+void myPrint(int a, int  b)
+{
+ cout << "普通函数调用 myPrint" << endl;
+}
+
+void test02()
+{
+ int a = 10;
+ int b = 20;
+
+ //1 、如果出现重载  优先使用普通函数调用,如果没有实现，出现错误
+ //myPrint(a, b);
+
+ //2、 如果想强制调用模板 ，那么可以使用空参数列表
+ myPrint<>(a, b);
+
+ //3、 函数模板可以发生重载
+ int c = 30;
+ myPrint(a, b, c);
+
+ //4、 如果函数模板可以产生更好的匹配，那么优先调用函数模板
+ char c1 = 'c';
+ char d = 'd';
+ myPrint(c1, d);
+
+}
+
+
+
+int main(){
+
+ //test01();
+
+ test02();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 模板局限性以及解决
+
+```cpp {.line-numbers, highlight=[31]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+#include <string>
+using namespace std;
+
+class Person
+{
+public:
+ Person(string name, int age)
+ {
+  this->m_Name = name;
+  this->m_Age = age;
+ }
+ string m_Name;
+ int m_Age;
+};
+
+
+
+template<class T>
+bool myCompare( T &a , T &b )
+{
+ if ( a == b)
+ {
+  return true;
+ }
+ return false;
+}
+
+// 通过第三代具体化自定义数据类型，解决上述问题
+// 如果具体化能够优先匹配，那么就选择具体化
+// 语法  template<> 返回值  函数名<具体类型>(参数) 
+template<> bool myCompare<Person>(Person &a, Person &b)
+{
+ if ( a.m_Age  == b.m_Age)
+ {
+  return true;
+ }
+
+ return false;
+}
+
+void test01()
+{
+ int a = 10;
+ int b = 20;
+
+ int ret = myCompare(a, b);
+
+ cout << "ret = " << ret << endl;
+
+ Person p1("Tom", 10);
+ Person p2("Jerry", 10);
+
+ int ret2 = myCompare(p1, p2);
+
+ cout << "ret2 = " << ret2 << endl;
+
+}
+
+
+int main(){
+
+ test01();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 类模板的基本使用
+
+```cpp {.line-numbers, highlight=[8, 28, 67]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+#include <string>
+using namespace std;
+
+
+//类模板
+template <class NameType, class AgeType = int> //类模板可以有默认类型
+class Person
+{
+public:
+ Person(NameType name, AgeType age)
+ {
+  this->m_Name = name;
+  this->m_Age = age;
+ }
+
+ void showPerson()
+ {
+  cout << "姓名：" << this->m_Name << " 年龄： " << this->m_Age << endl;
+ }
+
+ NameType m_Name;
+ AgeType m_Age;
+};
+void test01()
+{
+ //自动类型推导 ，类模板 不支持
+ //Person p("孙悟空", 100);
+
+ //显示指定类型
+ Person<string, int> p("孙悟空", 100);
+ p.showPerson();
+}
+class Person1
+{
+public:
+ void showPerson1()
+ {
+  cout << "Person1的调用" << endl;
+ }
+};
+
+class Person2
+{
+public:
+ void showPerson2()
+ {
+  cout << "Person2的调用" << endl;
+ }
+};
+
+template<class T>
+class myClass
+{
+public:
+ T obj;
+ void func1()
+ {
+  obj.showPerson1();
+ }
+ void func2()
+ {
+  obj.showPerson2();
+ }
+};
+//类模板中成员函数 一开始不会创建出来，而是在运行时才去创建?????????是否静态绑定
+
+void test02()
+{
+ myClass<Person1>m;
+
+ m.func1();
+
+ //m.func2();
+}
+
+int main(){
+
+// test01();
+
+ test02();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 类模板作为函数参数
+
+```cpp {.line-numbers, highlight=[26, 38, 42, 55]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+#include <string>
+using namespace std;
+
+//类模板
+template <class NameType, class AgeType = int> //类模板可以有默认类型
+class Person
+{
+public:
+ Person(NameType name, AgeType age)
+ {
+  this->m_Name = name;
+  this->m_Age = age;
+ }
+
+ void showPerson()
+ {
+  cout << "姓名：" << this->m_Name << " 年龄： " << this->m_Age << endl;
+ }
+
+ NameType m_Name;
+ AgeType m_Age;
+};
+
+//1  指定传入类型
+void doWork( Person<string ,int> & p ) 
+{
+ p.showPerson();
+}
+
+void test01()
+{
+ Person <string, int> p("MT",10);
+ doWork(p);
+}
+
+//2 参数模板化 利用函数模板自动推断类型
+template<class T1 ,class T2>
+void doWork2(Person<T1, T2> & p)
+{
+ //如何查看类型
+ cout << typeid(T1).name() << endl;
+ cout << typeid(T2).name() << endl;
+ p.showPerson();
+}
+void test02()
+{
+ Person <string, int> p("呆贼", 18);
+
+ doWork2(p);
+}
+
+
+//3 整体模板化 利用函数模板自动推断类型
+template<class T>
+void doWork3(T&p)
+{
+ cout << typeid(T).name() << endl;
+ p.showPerson();
+}
+
+void test03()
+{
+ Person <string, int> p("劣人", 18);
+
+ doWork3(p);
+}
+
+
+
+int main(){
+
+// test01();
+
+ test02();
+ 
+ test03();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 类模板碰到继承的问题
+
+```cpp {.line-numbers, highlight=[12, 18]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+
+template <class T>
+class Base
+{
+public:
+ T m_A; //double类型
+};
+
+//child继承与 base必须告诉base中的T的类型，否则T无法分配内存
+class Child :public Base<int>
+{
+
+};
+
+//child2 也是模板类
+template<class T1, class T2>
+class Child2 :public Base<T2>
+{
+public:
+ Child2()
+ {
+  cout << typeid(T1).name() << endl;
+  cout << typeid(T2).name() << endl;
+ }
+public:
+ T1 m_B; //int类型
+};
+
+void test01()
+{
+ Child2<int, double>child;//由用户指定类型
+
+}
+
+
+int main(){
+
+ test01();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 类模板外实现成员函数
+
+```cpp {.line-numbers, highlight=[26-27]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+#include <string>
+
+template<class T1 ,class T2>
+class Person
+{
+public:
+ Person(T1 name, T2  age);
+ //{
+ // this->m_Name = name;
+ // this->m_Age = age;
+ //}
+
+ void showPerson();
+ //{
+ // cout << "姓名：" << this->m_Name << "  年龄：  " << this->m_Age << endl;
+ //}
+
+ T1 m_Name;
+ T2 m_Age;
+};
+
+//类外实现成员函数
+template <class T1, class T2>
+Person<T1, T2>::Person(T1 name, T2 age)
+{
+ this->m_Name = name;
+ this->m_Age = age;
+}
+
+template <class T1, class T2>
+void Person<T1, T2>::showPerson()
+{
+ cout << "姓名：" << this->m_Name << "  年龄：  " << this->m_Age << endl;
+}
+
+void test01()
+{
+ Person <string ,int> p1("Mt", 100);
+ p1.showPerson();
+
+}
+
+
+
+int main(){
+
+ test01();
+ 
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 类模板的分文件编写问题和解决办法
+
+```cpp {.line-numbers, highlight=[7]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+#include <string>
+using namespace std;
+#include "Person.hpp"
+
+//建议 模板不要做分文件编写,写到一个类中即可,类内进行声明和实现，最后把后缀名改为.hpp 约定俗成 
+
+int main(){
+
+ Person<string, int>p("猪八戒", 10);
+ p.showPerson();
+
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 类模板友元函数-类内实现
+
+```cpp {.line-numbers, highlight=[9]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+#include <string>
+using namespace std;
+
+template<class T1 ,class T2>
+class Person
+{
+ //友元函数类内实现 编译器认为其为全局函数
+ friend void printPerson( Person<T1 ,T2> & p )
+ {
+  cout << "姓名：" << p.m_Name << "  年龄： " << p.m_Age << endl;
+ }
+public: 
+ Person(T1 name, T2 age)
+ {
+  this->m_Name = name;
+  this->m_Age = age;
+ }
+
+private:
+ T1 m_Name;
+ T2 m_Age;
+};
+
+void test01()
+{
+ Person<string, int> p("Tom", 10);
+ printPerson(p);
+}
+
+
+int main(){
+ test01();
+
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 类模板友元函数-类外实现
+
+```cpp
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+#include <string>
+using namespace std;
+
+//让编译器提前看到printPerson声明
+
+//让编译器看到Person类声明
+template<class T1, class T2> class Person;
+template<class T1, class T2>void printPerson(Person<T1, T2> & p);
+
+
+template<class T1, class T2>
+class Person
+{
+ //友元函数类内实现  利用空参数列表 告诉编译器 模板函数的声明
+ friend void printPerson<>(Person<T1, T2> & p); //普通函数 声明 friend void printPerson(Person<T1, T2> & p)
+ /*{
+  cout << "姓名：" << p.m_Name << "  年龄： " << p.m_Age << endl;
+ }*/
+public:
+ Person(T1 name, T2 age)
+ {
+  this->m_Name = name;
+  this->m_Age = age;
+ }
+
+private:
+ T1 m_Name;
+ T2 m_Age;
+};
+
+//类外实现
+template<class T1 ,class T2>
+void printPerson(Person<T1, T2> & p)
+{
+ cout << "姓名：" << p.m_Name << "  年龄： " << p.m_Age << endl;
+}
+
+void test01()
+{
+ Person<string, int> p("Tom", 10);
+ printPerson(p);
+}
+
+
+int main(){
+
+ test01();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
