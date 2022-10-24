@@ -2,7 +2,7 @@
 id: y3riuz15bl7j8354zs61mdu
 title: Blackhorse
 desc: ''
-updated: 1666277945401
+updated: 1666592208627
 created: 1665755934762
 ---
 ## CPlusPlus基础
@@ -4314,12 +4314,12 @@ int main(){
 
 ### 类模板友元函数-类外实现
 
-```cpp
+```cpp {.line-numbers, highlight=[5-7, 16-17]}
 #define _CRT_SECURE_NO_WARNINGS
 #include<iostream>
 #include <string>
 using namespace std;
-
+// 如何去理解这种声明方式???????????????????????
 //让编译器提前看到printPerson声明
 
 //让编译器看到Person类声明
@@ -4367,6 +4367,1916 @@ int main(){
 
  system("pause");
  return EXIT_SUCCESS;
+}
+
+```
+
+![](/assets/images/2022-10-23-09-00-42.png)
+
+### 利用模板设计数组类
+
+```cpp
+#pragma  once 
+#include <iostream>
+using namespace std;
+
+template< class T>
+class MyArray
+{
+public:
+
+
+ //构造
+ explicit MyArray(int capacity)  //防止隐式类型转换 防止MyArray arr = 10; 写法
+ {
+  this->m_Capacity = capacity;
+  this->m_Size = 0;
+  this->pAddress = new T[this->m_Capacity];
+ }
+
+ MyArray(const MyArray & array)
+ {
+  this->m_Capacity = array.m_Capacity;
+  this->m_Size = array.m_Size;
+  this->pAddress = new T[this->m_Capacity];
+  for (int i = 0; i < m_Size;i++)
+  {
+   this->pAddress[i] = array[i];
+  }
+ }
+
+ ~MyArray()
+ {
+  if (this->pAddress != NULL)
+  {
+   delete[] this->pAddress;
+   this->pAddress = NULL;
+  }
+ }
+
+ //赋值操作符重载
+ MyArray& operator=(MyArray & array)
+ {
+  //先判断原始数据，有就清空
+  if (this->pAddress != NULL)
+  {
+   delete[] this->pAddress;
+   this->pAddress = NULL;
+  }
+  
+  this->m_Capacity = array.m_Capacity;
+  this->m_Size = array.m_Size;
+  this->pAddress = new T[this->m_Capacity];
+  for (int i = 0; i < m_Size; i++)
+  {
+   this->pAddress[i] = array[i];
+  }
+ }
+
+ //[]重载
+ //MyArray arr(10);
+ //arr[0] = 100;
+ T & operator[]( int index)
+ {
+  return this->pAddress[index];
+ }
+
+ //尾插法
+ void push_Back( T  val)
+ {
+  this->pAddress[this->m_Size] = val;
+  this->m_Size++;
+ }
+
+
+ //获取大小
+ int getSize()
+ {
+  return m_Size;
+ }
+ //获取容量
+ int getCapacity()
+ {
+  return  this->m_Capacity;
+ }
+ 
+
+private:
+ T * pAddress; //指向堆区指针
+ int m_Capacity; //容量
+ int m_Size;
+
+};
+
+```
+
+```cpp
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+#include "MyArray.hpp"
+#include <string>
+
+//输出int类型数组
+void printIntArray(  MyArray<int>& array)
+{
+ for (int i = 0; i < array.getSize();i++)
+ {
+  cout << array[i] << endl;
+ }
+}
+
+class Person
+{
+public:
+ Person(){};
+
+ Person(string name, int age)
+ {
+  this->m_Name = name;
+  this->m_Age = age;
+ }
+ string m_Name;
+ int m_Age;
+};
+
+
+
+//输出Person类型数组
+void printPersonArray( MyArray<Person> & array )
+{
+ for (int  i = 0; i < array.getSize(); i++)
+ {
+  cout << "姓名： " << array[i].m_Name << " 年龄： " << array[i].m_Age << endl;
+ }
+}
+
+
+
+int main(){
+
+ MyArray <int >arr(10);
+ for (int i = 0; i < 10;i++)
+ {
+  arr.push_Back(i + 100);
+ }
+
+ printIntArray(arr);
+
+
+ Person p1("MT", 10);
+ Person p2("呆贼", 12);
+ Person p3("傻馒", 14);
+ Person p4("劣人", 15);
+
+ MyArray<Person>arr2(10);
+ arr2.push_Back(p1);
+ arr2.push_Back(p2);
+ arr2.push_Back(p3);
+ arr2.push_Back(p4);
+
+ printPersonArray(arr2);
+ 
+
+
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+#### test
+
+```cpp {.line-numbers, highlight=[17, 38]}
+#include <cwchar>
+#include <ios>
+#include <iostream>
+
+class Person {
+ public:
+  std::string name_;
+  int age_;
+  Person(std::string name, int age) : name_(name), age_(age) {
+    std::cout << "call parameters constructor" << std::endl;
+  }
+  Person Merge(Person const& src) {
+    std::string name = name_ + src.name_;
+    int age          = age_ + src.age_;
+    Person tmp       = Person(name, age);
+    std::cout << std::hex;
+    std::cout << &tmp << std::endl;  // 0000002714EFFC80
+    return tmp;
+  }
+  Person(Person const& src) {
+    name_ = src.name_;
+    age_  = src.age_;
+    std::cout << "copy constructor" << std::endl;
+  }
+  Person& operator=(Person const& src) {
+    name_ = src.name_;
+    age_  = src.age_;
+    std::cout << "assignment operator" << std::endl;
+    return *this;
+  }
+};
+
+int main() {
+  Person p1("xiaoming", 20);
+  Person p2("xiaozhang", 30);
+  Person p3 = p2.Merge(p1);
+  std::cout << std::hex;
+  std::cout << &p3 << std::endl;  // 0000002714EFFC80    由两者输出可知  clang编译器在对象值传递返回时做了右值优化
+  std::cout << p3.name_ << std::endl;
+  std::cout << p3.age_ << std::endl;
+}
+
+```
+
+### 类型转换
+
+```cpp {.line-numbers, highlight=[5, 44, 78, 100]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+
+//静态转换
+//基础类型
+
+void test01()
+{
+ char a = 'a';
+
+ double d = static_cast<double>(a);
+
+ cout << "d = " << d <<endl;
+}
+
+//父子之间转换
+class Base{};
+class Child :public Base{};
+class Other{};
+void test02()
+{
+ Base * base = NULL;
+ Child * child = NULL;
+
+ //把base转为 Child*类型 向下  不安全
+ Child * child2 = static_cast<Child*>(base);
+
+ //把child 转为 Base*  向上  安全
+ Base * base2 = static_cast<Base*>(child);
+
+ //转other类型 转换无效
+ //Other * other = static_cast<Other*>(base);
+}
+
+//static_cast使用   static_cast<目标类型>(原始对象)
+
+// 动态转换
+
+void test03()
+{
+ //基础类型不可以转换
+ char c = 'a';
+ //dynamic_cast非常严格，失去精度 或者不安全都不可以转换
+ //double d = dynamic_cast<double>(c);
+
+}
+
+class Base2
+{
+ virtual void func(){};
+};
+class Child2 :public Base2
+{
+ virtual void func(){};
+};
+class Other2{};
+
+void test04()
+{
+ Base2 * base = NULL;
+ Child2 * child = NULL;
+
+ //child转Base2 *  安全
+ Base2 * base2 = dynamic_cast<Base2*>(child);
+
+
+ //base 转Child2 * 不安全
+ //Child2 * child2 = dynamic_cast<Child2*>(base);
+
+ //dynamic_cast 如果发生了多态，那么可以让基类转为派生类 ，向下转换
+ Base2 * base3 = new Child2;
+ Child2 * child3 = dynamic_cast<Child2*>(base3);
+
+}
+
+
+// 常量转换(const_cast)
+void test05()
+{
+ const int * p = NULL;
+ //取出const
+ int * newp = const_cast<int *>(p);
+
+ int * p2 = NULL;
+ const int * newP2 = const_cast<const int *>(p2);
+
+
+ //不能对非指针 或 非引用的 变量进行转换
+ //const int a = 10;
+ //int b = const_cast<int>(a);
+
+ //引用
+ int num = 10;
+ int &numRef = num;
+
+ const int &numRef2 = static_cast<const int &>(numRef);
+}
+
+//重新解释转换(reinterpret_cast)
+void test06()
+{
+ int a = 10;
+ int * p = reinterpret_cast<int *>(a);
+
+
+ Base * base = NULL;
+ Other * other = reinterpret_cast<Other*>(base);
+
+ //最不安全 ，不推荐
+
+}
+
+
+
+
+
+
+int main(){
+
+ test01();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 异常的基本处理
+
+```cpp {.line-numbers, highlight=[5, 35, 41, 47, 68, 82, 109]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+
+class myException //自定义异常类
+{
+public:
+ void printError()
+ {
+  cout << "自定义的异常" << endl;
+ }
+};
+
+class Person
+{
+public:
+ Person()
+ {
+  cout << "Person构造" << endl;
+ }
+ ~Person()
+ {
+  cout << "Person析构" << endl;
+ }
+
+};
+
+int myDevide(int a ,int b)
+{
+ if (b == 0)
+ {
+  //如果b是异常 抛出异常
+  //return -1;
+
+  //throw 1; 抛出int类型异常
+  //throw 3.14; //抛出double类型异常  异常必须处理，如果不处理 就挂掉
+
+  //throw 'a';
+  
+  //栈解旋
+  //从try开始  到 throw 抛出异常之前  所有栈上的对象 都会被释放 这个过程称为栈解旋
+  //构造和析构顺序相反
+  Person p1;
+  Person p2;
+
+
+  throw myException(); //匿名对象
+
+ }
+ return a / b;
+}
+
+
+
+void test01()
+{
+ int a = 10;
+ int b = 0;
+
+ //int ret = myDevide(a, b); //早期如果返回-1 无法区分到底是结果还是异常
+
+ //C++中异常处理
+
+ try //试一试
+ {
+  myDevide(a, b);
+ }
+ catch (int) //捕获异常
+ {
+  cout << "int类型异常捕获" << endl;
+ }
+ catch (double)
+ {
+  //如果不想处理这个异常 ，可以继续向上抛出
+  throw;
+  cout << "double类型异常捕获" << endl;
+ }
+ catch (myException e)
+ {
+  e.printError();
+ }
+ catch (...)
+ {
+  cout << "其他类型异常捕获" << endl;
+ }
+
+}
+
+
+int main(){
+
+ try
+ {
+  test01();
+ }
+ catch (char ) //如果异常都没有处理，那么成员terminate函数，使程序中断
+ {
+  cout << "main 函数中 double类型异常捕获" << endl;
+ }
+ catch (...)
+ {
+  cout << "main函数中 其他类型异常捕获" << endl;
+ }
+ 
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+// 若没有处理异常的代码，则执行terminate函数，其调用aborb()函数进行程序报错
+
+```
+
+### 异常接口声明
+
+```cpp {.line-numbers, highlight=[4]}
+#include <exception>
+#include <iostream>
+
+void func() throw(char, int) {    // 异常接口声明，方便调用者捕获异常
+  std::cout << "start" << std::endl;
+  throw 1;
+}
+
+int main() {
+  try {
+    func();
+  } catch (int) {
+    std::cout << "catch" << std::endl;
+  }
+}
+
+```
+
+### 异常的生命周期
+
+```cpp {.line-numbers, highlight=[43, 48, 52]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+
+class MyException
+{
+public:
+ MyException()
+ {
+  cout << "MyException的默认构造" << endl;
+ }
+ MyException(const MyException & e)
+ {
+  cout << "MyException的拷贝构造" << endl;
+ }
+
+ ~MyException()
+ {
+  cout << "MyException的析构调用" << endl;
+ }
+
+ void printError()
+ {
+  this->m_A = 100;
+  cout << "error"  << m_A<< endl;
+ }
+
+ int m_A;
+
+};
+
+void doWork()
+{
+ throw  &MyException();
+}
+
+void test01()
+{
+ try
+ {
+  doWork();
+ }
+ catch (MyException *e) //MyException e，会多开销一份数据，会调用拷贝构造; MyException& e,推荐使用
+ {
+  
+  //e->printError();
+  //e->printError();
+  //e->printError(); //指向非法内存空间，不应该这么做  此时throw &MyException()，可以认为此时栈上异常临时对象内存销毁，所以指向了非法内存空间
+
+  cout << "捕获异常" << endl;
+
+  //delete e; //靠自觉 释放对象  若throw new MyExcption()  需手动delete
+ }
+
+}
+
+
+int main(){
+
+
+ test01();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 异常的多态使用
+
+```cpp
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+
+//异常基类
+class BaseException
+{
+public:
+ virtual void printError()
+ {
+ }
+};
+
+class  NullPointerException:public BaseException
+{
+public:
+ virtual void printError()
+ {
+  cout << "空指针异常" << endl;
+ }
+};
+
+class OutofRangeException:public BaseException
+{
+public:
+ virtual void printError()
+ {
+  cout << "越界异常" << endl;
+ }
+
+};
+
+
+void doWork()
+{
+ //throw NullPointerException();
+
+ throw OutofRangeException();
+}
+
+
+void test01()
+{
+ try
+ {
+  doWork();
+ }
+ catch (BaseException & e)
+ {
+  e.printError();
+ }
+
+}
+
+
+int main(){
+
+ test01();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 使用系统提供的标准异常
+
+```cpp
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+#include <string>
+using namespace std;
+//系统提供标准异常 要包含头文件
+#include <stdexcept>
+
+
+class Person
+{
+public:
+ Person(string name, int age)
+ {
+  this->m_Name = name;
+  //年龄做检测
+
+  if (age < 0 || age > 200)
+  {
+   //抛出越界异常
+   //throw  out_of_range("年龄越界了！");
+
+   throw length_error("长度越界");
+  }
+
+ }
+
+
+ string m_Name;
+ int m_Age;
+};
+
+void test01()
+{
+ try
+ {
+  Person p("张三",300);
+ }
+ catch (out_of_range & e)
+ {
+  cout << e.what() << endl;
+ }
+ catch (length_error & e)
+ {
+  cout << e.what() << endl;
+ }
+
+}
+
+
+int main(){
+
+ test01();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 自己编写异常类
+
+```cpp {.line-numbers, highlight=[23]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+#include <string>
+
+class MyOutOfRangeException:public exception
+{
+
+public:
+
+ MyOutOfRangeException(string errorInfo)
+ {
+  this->m_ErrorInfo = errorInfo;
+ }
+
+ virtual  ~MyOutOfRangeException( )
+ {
+
+ }
+ virtual const char *  what() const
+ {
+  //返回 错误信息
+  //string 转 char *     .c_str()
+  return this->m_ErrorInfo.c_str();
+ }
+ string m_ErrorInfo;
+};
+class Person
+{
+public:
+ Person(string name, int age)
+ {
+  this->m_Name = name;
+  //年龄做检测
+
+  if (age < 0 || age > 200)
+  {
+   throw MyOutOfRangeException( string("我自己的年龄越界异常"));
+  }
+ }
+ string m_Name;
+ int m_Age;
+};
+
+void test01()
+{
+ try
+ {
+  Person p("张三", 300);
+ }
+ catch ( MyOutOfRangeException & e  )
+ {
+  cout << e.what() << endl;
+ }
+}
+
+int main(){
+
+ test01();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 标准输入流
+
+```cpp {.line-numbers, highlight=[6-12, 17, 51, 70, 77, 89, 101, 155, 160, 163]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+
+/*
+cin.get() //一次只能读取一个字符
+cin.get(一个参数) //读一个字符
+cin.get(两个参数) //可以读字符串
+cin.getline()
+cin.ignore()
+cin.peek()
+cin.putback()
+*/
+
+void test01()
+{
+ // 输入as   缓冲区中  a  s  换行    第一个拿  a  第二个 拿 s  第三次拿换行 第四次等待下次输入
+ char c = cin.get();
+ cout << "c = " << c << endl;
+
+ c = cin.get();
+ cout << "c = " << c << endl;
+
+ c = cin.get();
+ cout << "c = " << c << endl;
+
+ c = cin.get();
+ cout << "c = " << c << endl;
+
+}
+
+void test02()
+{
+ //cin.get(两个参数) //可以读字符串
+ char buf[1024];
+ cin.get(buf, 1024);
+
+ char c = cin.get();
+
+ if (c == '\n')
+ {
+  cout << "换行还在缓冲区" << endl;
+ }
+ else
+ {
+  cout << "换行不在缓冲区" << endl;
+ }
+
+ cout << buf << endl;
+}
+//cin.get(两个参数)读取字符串时，不会把换行符拿走，遗留在缓冲区中
+
+
+//cin.getline()
+void test03()
+{
+ char buf[1024];
+ cin.getline(buf, 1024);
+
+ char c = cin.get();
+ if (c == '\n')
+ {
+  cout << "换行还在缓冲区" << endl;
+ }
+ else
+ {
+  cout << "换行不在缓冲区" << endl;
+ }
+
+ //cin.getline 把换行符读取，并且扔掉
+}
+
+
+// cin.ignore() 忽略
+void test04()
+{
+ cin.ignore(2); //没有参数 代表忽略一个字符 ，带参数N，代表忽略N个字符
+
+ char c =  cin.get();
+
+ cout << "c = " << c << endl;
+
+}
+
+
+// cin.peek() 偷窥
+void test05()
+{
+ //输入as  偷看一眼 a，然后再放回缓冲区 缓冲区中还是as
+ char c = cin.peek();
+
+ cout << "c = " << c << endl;
+
+ c = cin.get();
+
+ cout << "c = " << c << endl;
+
+}
+
+
+//cin.putback() 放回 放回到cin的缓冲区中
+void test06()
+{
+ char c = cin.get();
+ cin.putback(c);
+
+ char buf[1024];
+
+ cin.getline(buf,1024);
+ cout << buf << endl;
+}
+
+
+//案例1  判断用户的是字符串 还是数字？
+void test07()
+{
+ cout << "请输入一串数字或者字符串" << endl;
+
+ //偷窥
+ char c = cin.peek();
+
+ if (c >= '0' && c <= '9')
+ {
+  int num;
+  cin >> num;
+
+  cout << "您输入是数字 ：数字为" << num << endl;
+ }
+ else
+ { 
+  char buf[1024];
+  cin >> buf;
+
+  cout << "您输入是字符串 ：字符串为" << buf << endl;
+ }
+}
+
+
+//案例2 让用户输入 1 到 10 的数字 ，如果输入有误 重新输入 
+void test08()
+{
+ int num;
+
+ cout << "请输入一个1到10的数字：" << endl;
+
+ while (true)
+ {
+  cin >> num;
+  if (num > 0 && num <= 10)
+  {
+   cout << "输入的数字为" << num << endl;
+   break;
+  }
+  //cout << "对不起，请重新输入" << endl;
+  //重置标志位，标志位标志字符读取是否正确
+  cin.clear();
+
+  // 2015 版本的vs 下 用ignore 处理 cin.ignore(N);
+
+  cin.sync(); //清空缓冲区
+
+
+  //cout << "标志位: " << cin.fail() << endl; //标志位 0 正常的  1 不正常
+ }
+
+
+}
+
+
+
+int main(){
+
+ //test01();
+
+ //test02();
+
+ //test03();
+
+ //test04();
+
+ //test05();
+
+ //test06();
+
+ //test07();
+
+ test08();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 标准输出流
+
+```cpp {.line-numbers, highlight=[3, 7-8, 26-35, 42-49]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+#include <iomanip> //使用控制符的头文件
+using namespace std;
+
+/*
+cout.put() //向缓冲区写字符
+cout.write() //从buffer中写num个字节到当前输出流中。
+*/
+
+void test01()
+{
+// cout.put('a').put('b');
+
+
+ char buf[1024] = "hellowrold";
+
+ cout.write(buf, strlen(buf));
+
+}
+
+void test02()
+{
+ //通过流成员函数
+
+ int number = 99;
+ cout.width(20);
+ cout.fill('*');
+ cout.setf(ios::left); //设置格式  输入内容做对齐
+ cout.unsetf(ios::dec); //卸载十进制
+ cout.setf(ios::hex); //安装16进制
+ cout.setf(ios::showbase); // 强制输出整数基数  0  0x
+ cout.unsetf(ios::hex);
+ cout.setf(ios::oct);
+ cout << number << endl;
+
+}
+
+//控制符的方式显示
+void test03(){
+
+ int number = 99;
+ cout << setw(20)
+  << setfill('~')
+  << setiosflags(ios::showbase) //基数
+  << setiosflags(ios::left) //左对齐
+  << hex // 十六进制
+  << number
+  << endl;
+}
+
+
+int main(){
+
+ //test01();
+
+ //test02();
+
+ test03();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 文件的读写操作
+
+```cpp {.line-numbers, highlight=[7, 31]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+//文件读写头文件
+#include <fstream>
+
+//写文件
+void test01()
+{
+ //以输出的方式打开文件
+ //ofstream ofs("./test.txt", ios::out | ios::trunc);
+ //后期指定打开方式
+ 
+ ofstream ofs;
+ ofs.open("./test.txt", ios::out | ios::trunc);
+ //判断是否打开成功
+ if ( !ofs.is_open())
+ {
+  cout << "打开失败" << endl;
+ }
+
+ ofs << "姓名：abc" << endl;
+ ofs << "年龄：100" << endl;
+ ofs << "性别：男" << endl;
+
+
+ ofs.close();
+
+}
+
+//读文件
+void test02()
+{
+ ifstream ifs;
+ ifs.open("./test.txt", ios::in);
+
+ //判断是否打开成功
+ if (!ifs.is_open())
+ {
+  cout << "打开失败" << endl;
+ }
+
+ //第一种方式
+ //char buf[1024];
+
+ //while (ifs >>buf) //按行读取
+ //{
+ // cout << buf << endl;
+ //}
+
+ //第二种方式
+ //char buf2[1024];
+
+ //while (!ifs.eof()) //eof读到文件尾
+ //{
+ // ifs.getline(buf2, sizeof(buf2));
+ // cout << buf2 << endl;
+ //}
+
+ //第三种 不推荐 按单个字符读取
+ char c;
+ while (  (c = ifs.get() ) != EOF) // EOF文件尾
+ {
+  cout << c;
+ }
+
+ ifs.close();
+
+}
+
+
+
+int main(){
+ //test01();
+ test02();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### STL基本概念
+
+```cpp {.line-numbers, highlight=[1-5]}
+// 六大组件：容器（class template），算法（function template），迭代器，仿函数，适配器，分配器，容器存储内容，算法通过迭代器进行容器内容操纵，仿函数根据不同策略使用算法，适配器可以修改仿函数，分配器分配容器存储空间，迭代器是容器和算法之间的桥梁
+// STL让数据结构和算法分离，通过迭代器进行算法和数据结构的胶合
+// 容器分为序列式容器（放进去和取出来顺序一致），关联式容器（放进去和取出来，不一定顺序相同，有key，value）
+// 算法有质变算法（删除，移动等影响容器存储等），非质变算法（查找，遍历等不影响容器存储等算法）
+// 迭代器设计是一种设计模式：为了能够依序访问容器元素，无需知道容器内部情况，可以看作是一种智能指针，提供有关的指针操作
+
+```
+
+![](/assets/images/2022-10-24-08-38-06.png)
+
+### 容器算法迭代器初识
+
+```cpp {.line-numbers, highlight=[42]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+#include <vector> //vector容器的头文件
+#include <algorithm> //系统标准算法头文件
+#include <string>
+
+//普通指针也是属于一种迭代器
+void test01()
+{
+ int arr[5] = { 1, 5, 2, 7, 3 };
+ int * p = arr;
+ for (int i = 0; i < 5; i++)
+ {
+  //cout << arr[i] << endl;
+
+  cout << *(p++) << endl;
+ }
+}
+
+void myPrint(int val)
+{
+ cout << val << endl;
+}
+
+//内置属性类型
+void test02()
+{
+ 
+ vector<int>v; //声明一个vector的容器 
+
+ //想容器中添加数据
+ v.push_back(10);
+ v.push_back(20);
+ v.push_back(30);
+ v.push_back(40);
+
+ //通过迭代器可以 遍历容器
+ //每个容器都有自己专属的迭代器
+ //vector<int>::iterator itBegin = v.begin(); //起始迭代器
+
+ //vector<int>::iterator itEnd = v.end(); //结束迭代器 指向最后一个元素的下一个地址
+
+ //第一种遍历方式
+ //while (itBegin != itEnd)
+ //{
+ // cout << *itBegin << endl;
+ // itBegin++;
+ //}
+
+ //第二种遍历方式
+ //for (vector<int>::iterator it = v.begin(); it != v.end();it++)
+ //{
+ // cout << *it << endl;
+ //}
+
+ //第三种遍历方式  利用系统提供算法
+ for_each(v.begin(), v.end(), myPrint);
+
+}
+
+//自定义数据类型
+class Person
+{
+public:
+ Person(string name, int age)
+ {
+  this->m_Name = name;
+  this->m_Age = age;
+ }
+ string m_Name;
+ int m_Age;
+};
+void test03()
+{
+ vector<Person> v;
+
+ Person p1("aaa", 10);
+ Person p2("bbb", 20);
+ Person p3("ccc", 30);
+ Person p4("ddd", 40);
+
+ v.push_back(p1);
+ v.push_back(p2);
+ v.push_back(p3);
+ v.push_back(p4);
+
+ //遍历
+ for (vector<Person>::iterator it = v.begin(); it != v.end();it++)
+ {
+  // *it --- Person类型    it  --- 指针
+  cout << "姓名： " << (*it).m_Name << " 年龄： " << it->m_Age << endl;
+ }
+}
+
+//存放自定义数据类型的指针
+void test04()
+{
+ vector<Person*> v;
+
+ Person p1("aaa", 10);
+ Person p2("bbb", 20);
+ Person p3("ccc", 30);
+ Person p4("ddd", 40);
+
+ v.push_back(&p1);
+ v.push_back(&p2);
+ v.push_back(&p3);
+ v.push_back(&p4);
+
+ for (vector<Person*>::iterator it = v.begin(); it != v.end(); it++)
+ {
+  //*it   ---  Person *
+  cout << "姓名： " << (*it)->m_Name << " 年龄： " << (*it)->m_Age << endl;
+ }
+}
+
+//容器嵌套容器
+void test05()
+{
+ vector< vector<int> > v ;//类似二维数组
+
+ vector<int>v1;
+ vector<int>v2;
+ vector<int>v3;
+
+ for (int i = 0; i < 10;i++)
+ {
+  v1.push_back(i);
+  v2.push_back(i + 10);
+  v3.push_back(i + 100);
+ }
+
+ //将小容器 插入到大容器中
+ v.push_back(v1);
+ v.push_back(v2);
+ v.push_back(v3);
+
+
+ for (vector<vector<int>>::iterator it = v.begin(); it != v.end();it++)
+ {
+  //*it --- vector<int>
+  for (vector<int>::iterator vit = (*it).begin(); vit != (*it).end();vit++)
+  {
+   //*vit  --- int
+   cout << *vit << " ";
+  }
+  cout << endl;
+ }
+}
+
+int main(){
+ //test01();
+ //test02();
+ //test03();
+ //test04();
+ test05();
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### String容器
+
+```cpp {.line-numbers, highlight=[73]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+#include <string>
+#include <stdexcept>
+#include <vector>
+/*
+3.1.2.1 string 构造函数
+string();//创建一个空的字符串 例如: string str;
+string(const string& str);//使用一个string对象初始化另一个string对象
+string(const char* s);//使用字符串s初始化
+string(int n, char c);//使用n个字符c初始化
+
+3.1.2.2 string基本赋值操作
+string& operator=(const char* s);//char*类型字符串 赋值给当前的字符串
+string& operator=(const string &s);//把字符串s赋给当前的字符串
+string& operator=(char c);//字符赋值给当前的字符串
+string& assign(const char *s);//把字符串s赋给当前的字符串
+string& assign(const char *s, int n);//把字符串s的前n个字符赋给当前的字符串
+string& assign(const string &s);//把字符串s赋给当前字符串
+string& assign(int n, char c);//用n个字符c赋给当前字符串
+string& assign(const string &s, int start, int n);//将s从start开始n个字符赋值给字符串
+*/
+
+void test01()
+{
+ //构造
+ string s1;
+ string s2(s1); //拷贝构造
+ string s3("aaa"); //有参构造
+ string s4(10, 'c'); //两个参数 有参构造
+
+ cout << s3 << endl;
+ cout << s4 << endl;
+
+
+ //赋值
+ string s5;
+ s5 = s4;
+ //string& assign(const char *s, int n);//把字符串s的前n个字符赋给当前的字符串
+ s5.assign("abcdefg", 3);
+ cout << "s5 = " << s5 << endl;
+
+
+ //string& assign(const string &s, int start, int n);//将s从start开始n个字符赋值给字符串
+ // 从0开始计算
+ string s6 = "abcdefg";
+ string s7;
+ s7.assign(s6, 3, 3);
+ cout << "s7 =" << s7 << endl;
+
+
+}
+
+
+
+/*
+3.1.2.3 string存取字符操作
+char& operator[](int n);//通过[]方式取字符
+char& at(int n);//通过at方法获取字符
+*/
+
+void test02()
+{
+ string s = "hello world";
+
+ //for (int i = 0; i < s.size();i++)
+ //{
+ // //cout << s[i] << endl;
+ // cout << s.at(i) << endl;
+ //}
+  
+ //at 和 [] 区别   []访问越界 直接挂掉  而  at访问越界 会抛出一个 异常 out_of_range
+
+ try
+ {
+  //s[100];
+  s.at(100);
+ }
+ catch (exception &e)
+ {
+  cout << e.what() << endl;
+ }
+
+}
+
+
+/*
+3.1.2.4 string拼接操作
+string& operator+=(const string& str);//重载+=操作符
+string& operator+=(const char* str);//重载+=操作符
+string& operator+=(const char c);//重载+=操作符
+string& append(const char *s);//把字符串s连接到当前字符串结尾
+string& append(const char *s, int n);//把字符串s的前n个字符连接到当前字符串结尾
+string& append(const string &s);//同operator+=()
+string& append(const string &s, int pos, int n);//把字符串s中从pos开始的n个字符连接到当前字符串结尾
+string& append(int n, char c);//在当前字符串结尾添加n个字符c
+
+3.1.2.5 string查找和替换
+int find(const string& str, int pos = 0) const; //查找str第一次出现位置,从pos开始查找
+int find(const char* s, int pos = 0) const;  //查找s第一次出现位置,从pos开始查找
+int find(const char* s, int pos, int n) const;  //从pos位置查找s的前n个字符第一次位置
+int find(const char c, int pos = 0) const;  //查找字符c第一次出现位置
+int rfind(const string& str, int pos = npos) const;//查找str最后一次位置,从pos开始查找
+int rfind(const char* s, int pos = npos) const;//查找s最后一次出现位置,从pos开始查找
+int rfind(const char* s, int pos, int n) const;//从pos查找s的前n个字符最后一次位置
+int rfind(const char c, int pos = 0) const; //查找字符c最后一次出现位置
+string& replace(int pos, int n, const string& str); //替换从pos开始n个字符为字符串str
+string& replace(int pos, int n, const char* s); //替换从pos开始的n个字符为字符串s
+*/
+
+void test03()
+{
+ //字符串拼接
+ string  str1 = "我";
+ string str2 = "爱北京";
+
+ str1 += str2;
+
+ cout << str1 << endl;
+
+
+ string str3 = "天安门";
+
+ str1.append(str3);
+
+ cout << str1 << endl;
+
+
+ //字符串查找
+ string str4 = "abcdefghide";
+ int pos = str4.find("de"); //如果找不到子串 返回 -1 ，找到返回第一次出现的位置
+ //rfind从右往左查找
+ //第二个参数 是默认起始查找的位置  默认是0
+ cout << "pos = " << pos << endl;
+
+ //string& replace(int pos, int n, const string& str); //替换从pos开始n个字符为字符串str
+ str4.replace(1, 3, "111111"); // a111111efg..
+ cout << "str4 " << str4 << endl;
+ 
+}
+
+
+/*
+3.1.2.6 string比较操作
+compare函数在>时返回 1，<时返回 -1，==时返回 0。
+比较区分大小写，比较时参考字典顺序，排越前面的越小。
+大写的A比小写的a小。
+int compare(const string &s) const;//与字符串s比较
+int compare(const char *s) const;//与字符串s比较
+*/
+
+void test04()
+{
+
+ string str1 = "bbcde";
+ string str2 = "abcdeff";
+
+ if (str1.compare(str2) == 0)
+ {
+  cout << "str1 == str2 " << endl;
+ }
+ else if (str1.compare(str2) > 0)
+ {
+  cout << "str1 > str2 " << endl;
+ }
+ else
+ {
+  cout << "str1 < str2 " << endl;
+ }
+}
+
+/*
+3.1.2.7 string子串
+string substr(int pos = 0, int n = npos) const;//返回由pos开始的n个字符组成的字符串
+*/
+void test05()
+{
+ //string str = "abcde";
+ //string subStr = str.substr(1, 3);
+ //cout << subStr << endl; // bcd
+
+
+ string email = "zhangtao@sina.com";
+ int pos = email.find("@"); // 8
+ string userName = email.substr(0, pos);
+
+ cout << userName << endl;
+}
+
+void test06()
+{
+ string str = "www.itcast.com.cn";
+
+ //需求：  将 网址中的每个单词 都截取到 vector容器中
+ vector<string>v;
+
+ // www   itcast   com  cn
+
+ int start = 0;
+
+ while (true)
+ {
+  //www.itcast.com.cn
+  int pos = str.find(".",start);
+
+  if (pos == -1)
+  {
+   //将最后一个单词截取
+   string tmp = str.substr(start, str.size() - start);
+   v.push_back(tmp);
+   break;
+  }
+
+  string tmp = str.substr(start, pos- start);
+
+  v.push_back(tmp);
+
+  start = pos + 1;
+ }
+
+ 
+ for (vector<string>::iterator it = v.begin(); it != v.end();it++)
+ {
+  cout << *it << endl;
+ }
+}
+
+/*
+3.1.2.8 string插入和删除操作
+string& insert(int pos, const char* s); //插入字符串
+string& insert(int pos, const string& str); //插入字符串
+string& insert(int pos, int n, char c);//在指定位置插入n个字符c
+string& erase(int pos, int n = npos);//删除从Pos开始的n个字符
+*/
+void test07()
+{
+ string str = "hello";
+ str.insert(1, "111");
+
+ cout << "str = " << str << endl; // h111ello
+
+
+ //利用erase  删除掉 111
+ str.erase(1, 3);
+ cout << "str = " << str << endl;
+}
+
+/*
+string和c-style字符串转换
+*/
+
+void doWork(string s)
+{
+}
+
+void doWork2(const char * s)
+{
+}
+
+void test08()
+{
+ //char *  ->string
+ char * str = "hello";
+ string s(str);
+
+
+ // string -> char *
+ const char * str2 =  s.c_str();
+
+ doWork(str2); //编译器将  const char*  可以隐式类型转换为  string
+
+ //doWork2(s); //编译器 不会 将 string 隐式类型转换为 const char *
+}
+
+
+void test09()
+{
+ string s = "abcdefg";
+ char& a = s[2];
+ char& b = s[3];
+
+ a = '1';
+ b = '2';
+
+ cout << s << endl;
+ cout << (int*)s.c_str() << endl;
+
+ s = "pppppppppppppppppppppppp";
+
+ //a = '1'; //原来a和b的指向就失效了
+ //b = '2';
+
+ cout << s << endl;
+ cout << (int*)s.c_str() << endl;
+
+}
+
+/*
+写一个函数，函数内部将string字符串中的所有小写字母都变为大写字母。
+*/
+void test10()
+{
+ string str = "abCDeFg";
+
+ for (int i = 0; i < str.size();i++)
+ {
+  //小写转大写
+  //str[i] = toupper(str[i]);
+
+  //大写转小写
+  str[i] = tolower(str[i]);
+
+ }
+ cout << str << endl;
+}
+
+int main(){
+ //test01();
+ //test02();
+ //test03();
+ //test04();
+ //test05();
+ //test06();
+ //test07();
+ //test09();
+ test10();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### Vector容器
+
+```cpp {.line-numbers, highlight=[1, 167]}
+// vector容量不够时，会开辟新空间（因为不能保证原始空间的后面不被使用），并把数据拷贝到新空间，所以原有迭代器就失效了
+
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+#include <vector>
+#include <list>
+
+
+void test01()
+{
+ vector<int> v;
+ for (int i = 0; i < 10; i++){
+  v.push_back(i);
+  cout << v.capacity() << endl;  // v.capacity()容器的容量
+ }
+}
+
+
+
+/*
+3.2.4.1 vector构造函数
+vector<T> v; //采用模板实现类实现，默认构造函数
+vector(v.begin(), v.end());//将v[begin(), end())区间中的元素拷贝给本身。
+vector(n, elem);//构造函数将n个elem拷贝给本身。
+vector(const vector &vec);//拷贝构造函数。
+
+//例子 使用第二个构造函数 我们可以...
+int arr[] = {2,3,4,1,9};
+vector<int> v1(arr, arr + sizeof(arr) / sizeof(int));
+
+3.2.4.2 vector常用赋值操作
+assign(beg, end);//将[beg, end)区间中的数据拷贝赋值给本身。
+assign(n, elem);//将n个elem拷贝赋值给本身。
+vector& operator=(const vector  &vec);//重载等号操作符
+swap(vec);// 将vec与本身的元素互换。
+*/
+void printVector(vector<int>&v)
+{
+ for (vector<int>::iterator it = v.begin(); it != v.end();it++)
+ {
+  cout << *it << " ";
+ }
+ cout << endl;
+}
+
+void test02()
+{
+ //构造
+ vector<int>v1;
+
+ vector<int>v2(10, 100);
+ printVector(v2);
+
+ vector<int>v3(v2.begin(), v2.end());
+ printVector(v3);
+
+
+ //赋值
+ vector<int>v4;
+ //v4.assign(v3.begin(), v3.end());
+ v4 = v3;
+ printVector(v4);
+
+ int arr[] = { 2, 3, 4, 1, 9 };
+ vector<int> v5(arr, arr + sizeof(arr) / sizeof(int));
+
+
+ //swap交换
+ v4.swap(v5);
+ printVector(v4);
+
+}
+
+
+/*
+3.2.4.3 vector大小操作
+size();//返回容器中元素的个数
+empty();//判断容器是否为空
+resize(int num);//重新指定容器的长度为num，若容器变长，则以默认值填充新位置。如果容器变短，则末尾超出容器长度的元素被删除。
+resize(int num, elem);//重新指定容器的长度为num，若容器变长，则以elem值填充新位置。如果容器变短，则末尾超出容器长>度的元素被删除。
+capacity();//容器的容量
+reserve(int len);//容器预留len个元素长度，预留位置不初始化，元素不可访问。
+
+3.2.4.4 vector数据存取操作
+at(int idx); //返回索引idx所指的数据，如果idx越界，抛出out_of_range异常。
+operator[];//返回索引idx所指的数据，越界时，运行直接报错
+front();//返回容器中第一个数据元素
+back();//返回容器中最后一个数据元素
+
+3.2.4.5 vector插入和删除操作
+insert(const_iterator pos, int count,ele);//迭代器指向位置pos插入count个元素ele.
+push_back(ele); //尾部插入元素ele
+pop_back();//删除最后一个元素
+erase(const_iterator start, const_iterator end);//删除迭代器从start到end之间的元素
+erase(const_iterator pos);//删除迭代器指向的元素
+clear();//删除容器中所有元素
+*/
+
+void test03()
+{
+ vector<int>v1;
+ v1.push_back(10);
+ v1.push_back(40);
+ v1.push_back(20);
+ v1.push_back(30);
+
+ cout << "size = " << v1.size() << endl;
+
+ if (v1.empty())
+ {
+  cout << "v1为空" << endl;
+ }
+ else
+ {
+  cout << "v1不为空" << endl;
+ }
+
+ //重新指定容器长度  resize
+ v1.resize(10,1000); //第二个参数是默认填充的值，如果不写默认值为0
+
+ printVector(v1);
+
+ v1.resize(3);
+
+ printVector(v1);
+
+
+ cout << "v1的第一个元素： " << v1.front() << endl;
+
+ cout << "v1的最后一个元素： " << v1.back() << endl;
+
+ v1.insert(v1.begin(), 2,1000); //参数1 是迭代器
+ //  1000  1000  10  40  20
+ printVector(v1);
+
+ v1.pop_back(); //尾删
+ //  1000  1000  10  40  
+ printVector(v1);
+
+ //删除
+ //v1.erase(v1.begin() , v1.end());
+ //清空
+ v1.clear();
+ printVector(v1);
+
+}
+
+
+//巧用swap收缩内存
+void test04()
+{
+ vector<int>v;
+ for (int i = 0; i < 100000;i++)
+ {
+  v.push_back(i);
+ }
+ cout << "v的容量： " << v.capacity() << endl;
+ cout << "v的大小： " << v.size() << endl;
+
+ v.resize(3);
+
+ cout << "v的容量： " << v.capacity() << endl;
+ cout << "v的大小： " << v.size() << endl;
+
+ //收缩内存
+ vector<int>(v).swap(v);      // 初始化匿名对象时，根据size初始化，swap是交换指针
+ cout << "v的容量： " << v.capacity() << endl;
+ cout << "v的大小： " << v.size() << endl;
+
+}
+
+
+//巧用reverse预留空间
+void test05()
+{
+ vector<int>v;
+
+ v.reserve(100000);
+
+ int num = 0;
+ int * p = NULL;
+
+ for (int i = 0; i < 100000; i++)
+ {
+  v.push_back(i);
+  if (p != &v[0])
+  {
+   p = &v[0];
+   num++;
+  }
+ }
+
+ cout << "num = " << num << endl;
+}
+
+
+void test06()
+{
+ //逆序遍历
+ vector<int>v1;
+ v1.push_back(10);
+ v1.push_back(40);
+ v1.push_back(20);
+ v1.push_back(30);
+ cout << "正序遍历结果： " << endl;
+ printVector(v1);
+
+ cout << "逆序遍历结果： " << endl;
+
+ for (vector<int>::reverse_iterator it = v1.rbegin(); it != v1.rend();it++)
+ {
+  cout << *it << endl;
+ }
+
+
+ // vector容器的迭代器  随机访问迭代器
+ //如何判断一个容器的迭代器是否支持随机访问
+
+ vector<int>::iterator itBegin = v1.begin();
+
+ itBegin = itBegin + 2; //如果语法通过 支持随机访问
+
+
+
+ list<int>L;
+ L.push_back(10);
+ L.push_back(20);
+ L.push_back(30);
+
+ list<int>::iterator it2 = L.begin();
+ //it2 = it2+1; //list容器的迭代器不支持随机访问
+}
+
+
+int main(){
+
+ //test01();
+ //test02();
+ //test03();
+ //test04();
+ //test05();
+ test06();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+![](/assets/images/2022-10-24-13-28-39.png)
+
+![](/assets/images/2022-10-24-13-57-42.png)
+
+#### test
+
+```cpp {.line-numbers, highlight=[6, 10, 18]}
+#include <iostream>
+#include <stdexcept>
+#include <vector>
+
+int main() {
+  std::vector<int> vec(10);  // 指定容量后，vector对象被初始化0值，所以size和capacity都为10；
+  std::cout << vec.size() << std::endl;
+  std::cout << vec.capacity() << std::endl;
+  std::cout << "-------------------" << std::endl;
+  std::vector<int> vec1;  // 默认构造，vector对象size和capacity都为0，之后加入元素后进行capacity扩容和size随着元素增加
+  vec1.push_back(20);
+  vec1.push_back(20);
+  vec1.push_back(20);
+  vec1.push_back(20);
+  vec1.push_back(20);
+  std::cout << vec1.size() << std::endl;
+  std::cout << vec1.capacity() << std::endl;
+  std::vector<int>::reverse_iterator iter = vec1.rbegin();  // 返回反向迭代器，<---- 为正方向 *(iter+1)
+  std::cout << *iter << std::endl;
+  std::cout << *(iter - 1) << std::endl;
 }
 
 ```
