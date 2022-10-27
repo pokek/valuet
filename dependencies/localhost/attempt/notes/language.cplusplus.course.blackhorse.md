@@ -2,7 +2,7 @@
 id: y3riuz15bl7j8354zs61mdu
 title: Blackhorse
 desc: ''
-updated: 1666714648106
+updated: 1666793652315
 created: 1665755934762
 ---
 ## CPlusPlus基础
@@ -7407,7 +7407,7 @@ int main(){
 
 int main() {
   std::cout << "----------" << std::endl;
-  std::array<int, My_Size> nums;  // 模板的非类型参数，需要传宏定义才行，在实例化模板时宏定义直接展开
+  std::array<int, My_Size> nums;  // 模板的非类型参数，在实例化模板时由编译器直接绑定常量值，绑定值必须为常量表达式
   nums[0] = 20;
   std::cout << nums.size() << std::endl;
   std::cout << nums[0] << std::endl;
@@ -8123,7 +8123,7 @@ int main(){
 
 ```
 
-### test
+#### test
 
 ```cpp {.line-numbers, highlight=[31]}
 #include <algorithm>
@@ -8157,6 +8157,840 @@ int main() {
       vec.begin(),
       vec.end(),
       std::bind(PrintVector(), offset, std::placeholders::_1));  // _1占位符表示使用传递函数参数列表的第一个参数 ?????????????????怎么确定绑定的，如何实现的
+}
+
+```
+
+#### test
+
+```cpp {.line-numbers, highlight=[1]}
+#include <chrono>     // 时间库
+#include <iostream>
+
+#include <__chrono/duration.h>
+
+int main() {
+  std::chrono::seconds secs =
+      std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock().now().time_since_epoch());
+
+  std::cout << std::chrono::milliseconds(secs).count() << std::endl;
+}
+
+```
+
+#### test
+
+```cpp {.line-numbers, highlight=[7, 14]}
+#include <iostream>
+
+class Person {
+ public:
+  int age_;
+  void PrintSize() {
+    std::cout << sizeof(this) << std::endl;   // this指针8字节
+  }
+};
+
+int main() {
+  Person p1;
+  p1.PrintSize();
+  std::cout << sizeof(p1) << std::endl;   // 对象4字节
+}
+
+```
+
+### 常用的遍历算法
+
+```cpp {.line-numbers, highlight=[59, 85]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+#include <vector>
+#include <algorithm>
+#include <functional>
+/*
+遍历算法 遍历容器元素
+@param beg 开始迭代器
+@param end 结束迭代器
+@param _callback  函数回调或者函数对象
+@return 函数对象
+*/
+
+void myPrint(int val)
+{
+ cout << val << endl;
+}
+
+class MyPrint
+{
+public:
+ void operator()(int val)
+ {
+  cout << val << endl;
+  m_count++;
+ }
+
+ int m_count = 0;
+};
+
+void test01()
+{
+ vector<int>v;
+ for (int i = 0; i < 10;i++)
+ {
+  v.push_back(i);
+ }
+ 
+ //for_each(v.begin(), v.end(), myPrint);
+
+ for_each(v.begin(), v.end(), MyPrint());
+}
+// for_each有返回值
+void test02()
+{
+
+ vector<int>v;
+ for (int i = 0; i < 10; i++)
+ {
+  v.push_back(i);
+ }
+ MyPrint mp = for_each(v.begin(), v.end(), MyPrint());
+
+ cout <<"count = " <<  mp.m_count << endl;
+
+}
+
+// for_each可以绑定参数 进行输出
+class MyPrint3:public binary_function<int ,int , void >
+{
+public:
+ void operator()(int val ,int start) const
+ {
+  cout << val + start << endl;
+  
+ }
+};
+
+void test03()
+{
+ vector<int>v;
+ for (int i = 0; i < 10; i++)
+ {
+  v.push_back(i);
+ }
+
+ for_each(v.begin(), v.end(), bind2nd(MyPrint3(), 1000));
+
+}
+
+
+
+/*
+transform算法 将指定容器区间元素搬运到另一容器中
+注意 : transform 不会给目标容器分配内存，所以需要我们提前分配好内存
+@param beg1 源容器开始迭代器
+@param end1 源容器结束迭代器
+@param beg2 目标容器开始迭代器
+@param _cakkback 回调函数或者函数对象
+@return 返回目标容器迭代器
+*/
+class MyTransform
+{
+public:
+ int operator()(int val)
+ {
+  return val ;
+ }
+};
+
+void test04()
+{
+ vector<int>v1;
+ for (int i = 0; i < 10;i++)
+ {
+  v1.push_back(i);
+ }
+
+ vector<int>vTarget;
+ //重新指定 vTarget大小
+ vTarget.resize(v1.size());
+
+ transform(v1.begin(), v1.end(), vTarget.begin(), MyTransform());
+
+ for_each(vTarget.begin(), vTarget.end(), [](int val){cout << val << endl; });
+}
+
+
+
+int main(){
+
+ //test01();
+ //test02();
+ //test03();
+ test04();
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 常用的查找算法
+
+```cpp {.line-numbers, highlight=[9, 102, 117, 152, 183, 189]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <functional>
+/*
+find算法 查找元素
+@param beg 容器开始迭代器
+@param end 容器结束迭代器
+@param value 查找的元素
+@return 返回查找元素的位置
+*/
+
+void test01()
+{
+ vector<int>v1;
+ for (int i = 0; i < 10;i++)
+ {
+  v1.push_back(i);
+ }
+
+ //查找有没有5这个元素
+ vector<int>::iterator it = find(v1.begin(), v1.end(), 5);
+ if (it != v1.end())
+ {
+  cout << "找到了元素： " << *it << endl;
+ }
+ else
+ {
+  cout << "未找到" << endl;
+ }
+
+}
+
+class Person
+{
+public:
+ Person(string name, int age)
+ {
+  this->m_Name = name;
+  this->m_Age = age;
+ }
+
+ bool operator==(const Person & p)
+ {
+  return this->m_Name == p.m_Name && this->m_Age == p.m_Age;
+ }
+
+ string m_Name;
+ int m_Age;
+};
+void test02()
+{
+ vector<Person>v;
+ Person p1("aaa", 10);
+ Person p2("bbb", 40);
+ Person p3("ccc", 20);
+ Person p4("ddd", 30);
+
+ v.push_back(p1);
+ v.push_back(p2);
+ v.push_back(p3);
+ v.push_back(p4);
+
+ vector<Person>::iterator it = find(v.begin(), v.end(), p3);
+ if (it != v.end())
+ {
+  cout << "找到了元素---姓名：  " << (*it).m_Name  << " 年龄： "<< it->m_Age << endl;
+ }
+ else
+ {
+  cout << "未找到" << endl;
+ }
+}
+
+class MyComparePerson :public binary_function<Person*,Person*,bool>
+{
+public:
+ bool operator()(Person * p1 ,Person * p2) const
+ {
+  return (p1->m_Name == p2->m_Name && p1->m_Age == p2->m_Age);
+ }
+};
+
+void test03()
+{
+ vector<Person*>v;
+ Person p1("aaa", 10);
+ Person p2("bbb", 40);
+ Person p3("ccc", 20);
+ Person p4("ddd", 30);
+
+ v.push_back(&p1);
+ v.push_back(&p2);
+ v.push_back(&p3);
+ v.push_back(&p4);
+
+ Person * p = new Person("bbb", 40);
+
+ vector<Person*>::iterator it= find_if(v.begin(), v.end(), bind2nd( MyComparePerson() ,p ));
+ if (it != v.end())
+ {
+  cout << "找到了数据 姓名： " << (*it)->m_Name << " 年龄： " << (*it)->m_Age << endl;
+ }
+ else
+ {
+  cout << "未找到" << endl;
+ }
+
+
+}
+
+
+/*
+adjacent_find算法 查找相邻重复元素
+@param beg 容器开始迭代器
+@param end 容器结束迭代器
+@param  _callback 回调函数或者谓词(返回bool类型的函数对象)
+@return 返回相邻元素的第一个位置的迭代器
+*/
+void test04()
+{
+ vector<int>v1;
+ v1.push_back(1);
+ v1.push_back(4);
+ v1.push_back(2);
+ v1.push_back(3);
+ v1.push_back(4);
+ v1.push_back(6);
+ v1.push_back(6);
+ v1.push_back(17);
+
+ vector<int>::iterator it = adjacent_find(v1.begin(), v1.end());
+
+ if (it != v1.end())
+ {
+  cout << "相邻的重复元素为：" << *it << endl;
+ }
+ else
+ {
+  cout << "未找到" << endl;
+ }
+
+
+}
+
+
+
+/*
+binary_search算法 二分查找法
+注意: 在无序序列中不可用
+@param beg 容器开始迭代器
+@param end 容器结束迭代器
+@param value 查找的元素
+@return bool 查找返回true 否则false
+*/
+
+void test05()
+{
+ vector<int>v;
+ for (int i = 0; i < 10;i++)
+ {
+  v.push_back(i);
+ }
+ //v.push_back(3);
+
+ bool ret = binary_search(v.begin(), v.end(), 9);
+
+ if (ret)
+ {
+  cout << "找到了" << endl;
+ }
+ else
+ {
+  cout << "未找到" << endl;
+ }
+}
+
+
+/*
+count算法 统计元素出现次数
+@param beg 容器开始迭代器
+@param end 容器结束迭代器
+@param  value回调函数或者谓词(返回bool类型的函数对象)
+@return int返回元素个数
+
+count_if算法 统计元素出现次数
+@param beg 容器开始迭代器
+@param end 容器结束迭代器
+@param  callback 回调函数或者谓词(返回bool类型的函数对象)
+@return int返回元素个数
+*/
+class MyCompare6
+{
+public:
+ bool operator()(int val)
+ {
+  return val > 4;
+ }
+};
+void test06()
+{
+ vector<int>v;
+ for (int i = 0; i < 10; i++)
+ {
+  v.push_back(i);
+ }
+ v.push_back(4);
+ v.push_back(4);
+ v.push_back(4);
+ v.push_back(4);
+
+ int num = count(v.begin(), v.end(), 4);
+ cout << "4的个数为： " << num << endl;
+
+
+ //按条件进行统计
+ num = count_if(v.begin(), v.end(), MyCompare6());
+ cout << "大于4的个数为： " << num << endl;
+}
+
+
+
+int main(){
+ //test01();
+ //test02();
+ //test03();
+ //test04();
+ //test05();
+ test06();
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 常用排序算法
+
+```cpp {.line-numbers, highlight=[10, 37, 59, 84]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+#include <vector>
+#include <algorithm>
+#include <functional>
+#include <ctime>
+
+/*
+merge算法 容器元素合并，并存储到另一容器中
+注意:两个容器必须是有序的
+@param beg1 容器1开始迭代器
+@param end1 容器1结束迭代器
+@param beg2 容器2开始迭代器
+@param end2 容器2结束迭代器
+@param dest  目标容器开始迭代器
+*/
+
+void test01()
+{
+ vector<int>v1;
+ vector<int>v2;
+
+ for (int i = 0; i < 10;i++)
+ {
+  v1.push_back(i);
+  v2.push_back(i + 1);
+ }
+
+ vector<int>vTarget;//目标容器
+ vTarget.resize(v1.size() + v2.size());
+ merge(v1.begin(), v1.end(), v2.begin(), v2.end(), vTarget.begin());
+ for_each(vTarget.begin(), vTarget.end(), [](int val){cout << val << endl; });
+}
+
+/*
+sort算法 容器元素排序
+@param beg 容器1开始迭代器
+@param end 容器1结束迭代器
+@param _callback 回调函数或者谓词(返回bool类型的函数对象)
+*/
+void test02()
+{
+ vector<int>v1;
+
+ for (int i = 0; i < 10; i++)
+ {
+  v1.push_back(i);
+ }
+
+ //从大到小
+ sort(v1.begin(), v1.end(), greater<int>());
+
+ for_each(v1.begin(), v1.end(), [](int val){cout << val << endl; });
+
+}
+
+/*
+random_shuffle算法 对指定范围内的元素随机调整次序
+@param beg 容器开始迭代器
+@param end 容器结束迭代器
+*/
+
+void test03()
+{
+ vector<int>v1;
+
+ for (int i = 0; i < 10; i++)
+ {
+  v1.push_back(i);
+ }
+
+ random_shuffle(v1.begin(), v1.end());
+
+
+ for_each(v1.begin(), v1.end(), [](int val){cout << val << " "; });
+
+ cout << endl;
+
+}
+
+
+/*
+reverse算法 反转指定范围的元素
+@param beg 容器开始迭代器
+@param end 容器结束迭代器
+*/
+void test04()
+{
+ vector<int>v1;
+
+ for (int i = 0; i < 10; i++)
+ {
+  v1.push_back(i);
+ }
+ v1.push_back(3);
+
+ reverse(v1.begin(), v1.end());
+ for_each(v1.begin(), v1.end(), [](int val){cout << val << " "; });
+
+ cout << endl;
+}
+
+
+int main(){
+ srand((unsigned int)time(NULL));
+
+ //test01();
+ //test02();
+ //test03();
+ test04();
+
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 常用的拷贝和替换算法
+
+```cpp {.line-numbers, highlight=[8, 29, 36, 42, 80]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+#include <vector>
+#include <algorithm>
+#include <iterator>
+/*
+copy算法 将容器内指定范围的元素拷贝到另一容器中
+@param beg 容器开始迭代器
+@param end 容器结束迭代器
+@param dest 目标起始迭代器
+*/
+void test01()
+{
+ vector<int>v1;
+
+ for (int i = 0; i < 10;i++)
+ {
+  v1.push_back(i);
+ }
+
+ vector<int>vTarget;
+ vTarget.resize(v1.size());
+
+ copy(v1.begin(), v1.end(), vTarget.begin());
+
+ //for_each(vTarget.begin(), vTarget.end(), [](int val){ cout << val << " "; });
+
+ copy(vTarget.begin(), vTarget.end(), ostream_iterator<int>(cout, " ")); // 拷贝到流迭代器中输出
+
+ cout << endl;
+
+}
+
+/*
+replace算法 将容器内指定范围的旧元素修改为新元素
+@param beg 容器开始迭代器
+@param end 容器结束迭代器
+@param oldvalue 旧元素
+@param oldvalue 新元素
+
+replace_if算法 将容器内指定范围满足条件的元素替换为新元素
+@param beg 容器开始迭代器
+@param end 容器结束迭代器
+@param callback函数回调或者谓词(返回Bool类型的函数对象)
+@param oldvalue 新元素
+*/
+
+class MyCompare2
+{
+public:
+ bool operator()(int val)
+ {
+  return val > 3;
+ }
+};
+void test02()
+{
+ vector<int>v1;
+
+ for (int i = 0; i < 10; i++)
+ {
+  v1.push_back(i);
+ }
+
+ replace(v1.begin(), v1.end(), 3, 300);
+
+ copy(v1.begin(), v1.end(), ostream_iterator<int>(cout, " "));
+ cout << endl;
+
+ //按条件 进行替换   将所有大于3  替换为 3000
+ replace_if(v1.begin(), v1.end(), MyCompare2(), 3000);
+
+ copy(v1.begin(), v1.end(), ostream_iterator<int>(cout, " "));
+
+}
+
+
+/*
+swap算法 互换两个容器的元素
+@param c1容器1
+@param c2容器2
+*/
+
+void test03()
+{
+ vector<int>v1;
+
+ for (int i = 0; i < 10; i++)
+ {
+  v1.push_back(i);
+ }
+
+
+ vector<int>v2(10, 100);
+
+ swap(v1, v2);
+
+ copy(v1.begin(), v1.end(), ostream_iterator<int>(cout, " "));
+ cout << endl;
+
+
+}
+
+int main(){
+ //test01();
+ //test02();
+ test03();
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 常用算数生成算法
+
+```cpp {.line-numbers, highlight=[5, 9, 28]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+#include <vector>
+#include <numeric> //accumulate头文件
+#include <iterator>
+
+/*
+accumulate算法 计算容器元素累计总和
+@param beg 容器开始迭代器
+@param end 容器结束迭代器
+@param value累加值
+*/
+
+void test01()
+{
+ vector<int>v;
+ for (int i = 1; i <= 100;i++)
+ {
+  v.push_back(i);
+ }
+
+ int sum = accumulate(v.begin(), v.end(), 0); //第三个参数 是起始累加的值
+ cout << "sum = " << sum << endl;
+}
+
+/*
+fill算法 向容器中添加元素
+@param beg 容器开始迭代器
+@param end 容器结束迭代器
+@param value t填充元素
+*/
+
+void test02()
+{
+ vector<int>v;
+ v.resize(10);
+
+ fill(v.begin(), v.end(), 500);
+
+ copy(v.begin(), v.end(), ostream_iterator<int>(cout, " "));
+}
+
+
+int main(){
+ //test01();
+ test02();
+
+ system("pause");
+ return EXIT_SUCCESS;
+}
+
+```
+
+### 常用集合算法
+
+```cpp {.line-numbers, highlight=[9, 42, 73]}
+#define _CRT_SECURE_NO_WARNINGS
+#include<iostream>
+using namespace std;
+#include <vector>
+#include <algorithm>
+#include <iterator>
+#include <functional>
+/*
+set_intersection算法 求两个set集合的交集
+注意:两个集合必须是有序序列
+@param beg1 容器1开始迭代器
+@param end1 容器1结束迭代器
+@param beg2 容器2开始迭代器
+@param end2 容器2结束迭代器
+@param dest  目标容器开始迭代器
+@return 目标容器的最后一个元素的迭代器地址
+*/
+
+
+void test01()
+{
+ vector<int>v1;
+ vector<int>v2;
+
+ for (int i = 0; i < 10; i++)
+ {
+  v1.push_back(i);
+  v2.push_back(i + 5);
+ }
+
+ vector<int>vTarget; //目标容器
+ vTarget.resize( min(v1.size(),v2.size()) );//两个容器中取小的开辟size
+
+ vector<int>::iterator itEnd = set_intersection(v1.begin(), v1.end(), v2.begin(), v2.end(), vTarget.begin());
+
+
+ copy(vTarget.begin(), itEnd, ostream_iterator<int>(cout, " "));
+ cout << endl;
+}
+
+/*
+set_union算法 求两个set集合的并集
+注意:两个集合必须是有序序列
+@param beg1 容器1开始迭代器
+@param end1 容器1结束迭代器
+@param beg2 容器2开始迭代器
+@param end2 容器2结束迭代器
+@param dest  目标容器开始迭代器
+@return 目标容器的最后一个元素的迭代器地址
+*/
+void test02()
+{
+ vector<int>v1;
+ vector<int>v2;
+
+ for (int i = 0; i < 10; i++)
+ {
+  v1.push_back(i);
+  v2.push_back(i + 5);
+ }
+
+ vector<int>vTarget;
+
+ vTarget.resize(v1.size() + v2.size());
+
+ vector<int>::iterator itEnd = set_union(v1.begin(), v1.end(), v2.begin(), v2.end(), vTarget.begin());
+
+ copy(vTarget.begin(), itEnd, ostream_iterator<int>(cout, " "));
+ cout << endl;
+}
+
+/*
+set_difference算法 求两个set集合的差集
+注意:两个集合必须是有序序列
+@param beg1 容器1开始迭代器
+@param end1 容器1结束迭代器
+@param beg2 容器2开始迭代器
+@param end2 容器2结束迭代器
+@param dest  目标容器开始迭代器
+@return 目标容器的最后一个元素的迭代器地址
+*/
+
+
+void test03()
+{
+ vector<int>v1;
+ vector<int>v2;
+
+ for (int i = 0; i < 10; i++)
+ {
+  v1.push_back(i);
+  v2.push_back(i + 5);
+ }
+
+ vector<int>vTarget;
+
+ vTarget.resize( max(v1.size(),v2.size()) );
+
+ //v1 与 v2 差集
+ //vector<int>::iterator itEnd = set_difference(v1.begin(), v1.end(), v2.begin(), v2.end(), vTarget.begin());
+
+ //v2 与 v1 差集
+ vector<int>::iterator itEnd = set_difference(v2.begin(), v2.end(), v1.begin(), v1.end(), vTarget.begin());
+ copy(vTarget.begin(), itEnd, ostream_iterator<int>(cout, " "));
+ cout << endl;
+}
+
+
+
+int main(){
+
+
+ //test01();
+ //test02();
+ test03();
+ system("pause");
+ return EXIT_SUCCESS;
 }
 
 ```
