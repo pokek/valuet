@@ -3508,8 +3508,8 @@ int main() {
 // 抽象基类的析构也要为虚函数，不然也保证不了堆上内存释放时的释放顺序
 // 虚表中内容动态绑定，其它静态绑定，函数绑定，变量分配地址
 
-// 查看对象内存模型 clang -Xclang -fdump-record-layouts    main函数中需要sizeof
-// 查看虚函数表clang -Xclang -fdump-vtable-layouts    main函数中需初始化
+// 查看对象内存模型 clang++ -Xclang -fdump-record-layouts    main函数中需要sizeof
+// 查看虚函数表clang++ -Xclang -fdump-vtable-layouts    main函数中需初始化
 // windows中 > 为命令行打印输出到文件，类似于unix中的 |
 
 ```
