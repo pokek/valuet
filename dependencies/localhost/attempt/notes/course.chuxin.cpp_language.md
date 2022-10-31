@@ -2190,7 +2190,7 @@ int main() {
 
 - [ ] [汇编程序指令重排](https://www.zhihu.com/question/351434327/answer/2325628399)
 
-```cpp {.line-numbers, highlight=[12]}
+```cpp {.line-numbers, highlight=[12, 19]}
 
 #include <chrono>
 #include <iostream>
@@ -2209,5 +2209,7 @@ int main() {
   int&& i    = 20;
   std::cout << typeid(s).name() << std::endl;
 }
+
+// clang++ -O1 -g -fsanitize=address -fno-omit-frame-pointer -o core core.c 检测内存是否泄漏  
 
 ```
