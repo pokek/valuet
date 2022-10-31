@@ -284,3 +284,1739 @@ int main(){
   auto i2 = i;
   type_identify<decltype(i2)>().pretty_name().... // boost库中的类型推断
 }
+
+```
+
+### 6.（*）静态变量，指针和引用
+
+变量的存储位置有三种，分别是静态变量区，栈区，堆区。
+静态变量区在编译时就已经确定地址，存储全局变量与静态变量。
+
+代码演示：
+
+指针都是存储在栈上或堆上，不管在栈上还是堆上，都一定有一个地址。
+本质上说，指针和普通变量没有区别。
+在32位系统中，int变量和指针都是32位。指针必须和“&”，“*”这两个符号一起使用才有意义。
+&a代表的a这个变量的地址，a代表的a对应地址存储的值，*a代表对应地址存储的值作为地址对应的值，这句话可能不好理解。
+
+代码演示：
+
+所以指针才可以灵活的操作内存，但这也带来了严重的副作用，比如指针加加减减就可以操作内存，所以引用被发明了，引用就是作用阉割的指针（可以视为“类型*const”，所以引用必须上来就赋初值，不能设置为空），编译器不将其视作对象，操作引用相当于操作引用指向的对象。也就从根本是杜绝了引用篡改内存的能力。
+
+新手如果不懂内存，就直接将引用视为指向对象的别名就可以了。
+
+要真正理解指针，引用是需要学习c语言对应汇编的，只要懂了汇编，一目了然。不懂汇编就只能这样理解了。
+
+### 7.（**）左值，右值，左值引用，右值引用
+
+首先说一点：在学这节课时不要去想左值，右值，左值引用，右值引用有什么意义。以后会反复使用的，这些概念都很重要。
+
+1. 左值和右值
+左值右值从C++11开始就是一个很重要的概念了，但想要真正理解左值，右值不是一件容易的事。
+尤其新人要彻底理解左值右值就更加困难了，所以我推荐新手将这些概念死死记住，带着疑惑学习下面的课程，积累的多了，自然就明白了。后面左值，右值的概念会被反复提及。
+
+C++任何一个对象要么是左值，要么是右值。
+比如int i = 10，i和10都是对象
+左值：拥有地址属性的对象就叫左值，左值来源于c语言的说法，能放在“=”左面的就是左值，注意，左值也可以放在“=”右面。
+右值：不是左值的对象就是右值。或者说无法操作地址的对象就叫做右值。一般来说，判断一个对象是否为右值，就看它是不是左值，有没有地址属性，不是左值，那就是右值。
+
+比如临时对象，就都是右值，临时对象的地址属性无法使用--(**有地址但无法使用**)。
+注意：左值也可以放在“=”右面，但右值绝对不可以放在等号左面
+接下来就是大量举例了，说明那些是左值，哪些是右值。
+
+代码演示。
+
+2. 引用的分类
+(1)普通左值引用：就是一个对象的别名，只能绑定左值，无法绑定常量对象。
+(2)const左值引用：可以对常量起别名，可以绑定左值和右值。
+(3)右值引用（暂时不要去管右值引用有什么用，只要记住语法就可以了，实际用途下一课就会讲到）：只能绑定右值的引用。
+(4)万能引用：这节课不讲，等到part10涉及模板时再讲，这是一个很重要，但需要模板等基础的概念。
+
+代码演示：
+
+### 8.（**）move函数，临时对象
+
+首先说一点：这节课是第7课的继续，是对右值基础的补充，右值的具体应用要等到Part3的移动语义那里才能完全体现。
+
+1. move函数：
+(1) 右值看重对象的值而不考虑地址，move函数可以对一个左值使用，使操作系统不再在意其地址属性，将其完全视作一个右值。
+(2) move函数让操作的对象失去了地址属性，所以我们有义务保证以后不再使用该变量的地址属性，简单来说就是不再使用该变量，因为左值对象的地址是其使用时无法绕过的属性。
+
+代码演示：
+
+move函数的具体意义现阶段无需在意，Part3讲移动语义时会体现move函数意义的。
+2. 临时对象：
+右值都是不体现地址的对象。那么，还有什么能比临时对象更加没有地址属性呢？右值引用主要负责处理的就是临时对象。
+程序执行时生成的中间对象就是临时对象，注意，所有的临时对象都是右值对象，因为临时对象产生后很快就可能被销毁，使用的是它的值属性。
+
+代码演示：
+
+3. 总结：
+右值和右值引用这里只介绍语法，等到Part3的第11课，会学习移动构造，右值引用会真正体现出提高程序性效率的功能。
+
+### 9.（**）可调用对象
+
+如果一个对象可以使用调用运算符“()”，()里面可以放参数，这个对象就是可调用对象。
+（*）注意：可调用对象的概念新手只要记住就可以了，后面会反复用到，这个概念很重要。
+可调用对象的分类：
+
+1. 函数：
+函数自然可以调用()运算符，是最典型的可调用对象。
+2. 仿函数：
+具有operator()函数的类对象（知道有这么个东西就可以了，具体实现过程Part3会讲），此时类对象可以当做函数使用，因此称为仿函数。
+3. lambda表达式：
+就是匿名函数，普通的函数在使用前需要找个地方将这个函数定义，于是C++提供了lambda表达式，需要函数时直接在需要的地方写一个lambda表达式，省去了定义函数的过程，增加开发效率。
+
+注意：lambda表达式很重要，现代C++程序中，lambda表达式是大量使用的。
+
+lambda表达式的格式：最少是“[] {}”，完整的格式为“[] () ->ret {}”。
+
+代码演示：
+lambda各个组件介绍
+
+1. []代表捕获列表：表示lambda表达式可以访问前文的哪些变量。
+(1)[]表示不捕获任何变量。
+[2](=)：表示按值捕获所有变量。
+[3](&)：表示按照引用捕获所有变量。
+=，&也可以混合使用，比如
+[4](=, &i)：表示变量i用引用传递，除i的所有变量用值传递。
+[5](&, i)：表示变量i用值传递，除i的所有变量用引用传递。
+当然，也可以捕获单独的变量
+[6](i)：表示以值传递的形式捕获i
+[7](&i)：表示以引用传递的方式捕获i
+
+2. ()代表lambda表达式的参数，函数有参数，lambda自然也有。
+
+3. ->ret表示指定lambda的返回值，如果不指定，lambda表达式也会推断出一个返回值的。
+4. {}就是函数体了，和普通函数的函数体功能完全相同。
+
+lambda后面会广泛使用，现在只要理解基础就可以了。
+
+C++的可调用对象主要就这三个，当然，这三个也可以衍生出很多写法。
+最常见的就是函数指针，函数指针的本质就是利用指针调用函数，本质还是函数。
+
+函数指针要细分也可以分为指向类成员函数的指针，指向普通函数的指针。
+这些在这里就不演示了。
+
+```cpp {.line-numbers, highlight=[26]}
+#include <iostream>
+
+using fun_type = void (*) (int);
+
+class Person{
+  public:
+    void operator()(int a){
+      std::cout << a << std::endl;
+    }
+}
+
+void test(fun_type fun, int i){
+  fun(i);
+}
+
+void func(int a){
+  std::cout << a << std::endl;
+}
+int main(){
+  int f = 30;
+  Person pe;
+  pe(10);
+  test(func, 20);
+  test([f](int a){
+    std::cout << a << std::endl;
+  }, 30);     // 函数指针做参数不能用匿名函数对象捕获其它变量，因为类型不一致，可利用functional提供的 funciton来进行参数类型s声明，using func_type = std::function<void(int)>，使得可以捕获匿名函数参数列表  #incude <functional>
+}
+
+```
+
+## Part3：类
+
+首先提一下：类的权限修饰就不讲了，相信大家对于这个已经很了解了，如果不了解，就百度一下吧，非常简单，易懂，直接问我也可以。
+
+### 1.（*）类介绍，构造函数，析构函数
+
+1. 类介绍：
+(1) 面试的时候经常会听到一个问题，谈一下对面向对象和面向过程的理解。我来说一下我对这两个概念的理解
+①面向对象和面向过程是一个相对的概念。
+②面向过程是按照计算机的工作逻辑来编码的方式，最典型的面向过程的语言就是c语言了，c语言直接对应汇编，汇编又对应电路。
+③面向对象则是按照人类的思维来编码的一种方式，C++就完全支持面向对象功能，可以按照人类的思维来处理问题。
+④举个例子，要把大象装冰箱，按照人类的思路自然是分三步，打开冰箱，将大象装进去，关上冰箱。
+要实现这三步，我们就要首先有人，冰箱这两个对象。人有给冰箱发指令的能 力，冰箱有能够接受指令并打开或关闭门的能力。
+
+但是从计算机的角度讲，计算机只能定义一个叫做人和冰箱的结构体。人有手这个部位，冰箱有门这个部位。然后从天而降一个函数，是这个函数让手打开了冰箱，又是另一个函数让大象进去，再是另一个函数让冰箱门关上。
+
+从开发者的角度讲，面向对象显然更利于程序设计。用面色过程的开发方式，程序一旦大了，各种从天而降的函数会非常繁琐，一些用纯c写的大型程序，实际上也是模拟了面向对象的方式。
+
+那么，如何用面向过程的c语言模拟出面向对象的能力呢？类就诞生了，在类中可以定义专属于类的函数，让类有了自己的动作。回到那个例子，人的类有了让冰箱开门的能力，冰箱有了让人打开的能力，不再需要天降神秘力量了。
+
+总结：到现在，大家应该可以理解类的重要性了吧，这是面向对象的基石，也可以说是所有现代程序的基石。
+
+2. 构造函数：
+ 类再怎么吹，它也是通过面向过程的机器实现的，类相当于定义了一个新类型，该类型生成在堆或栈上的对象时内存排布和c语言相同。但是c++规定，C++有在类对象创建时就在对应内存将数据初始化的能力，这就是构造函数。
+
+用excel表格演示一下：
+
+构造函数有以下类型。
+
+1. 普通构造函数：写法代码演示
+2. 复制构造函数：用另一个对象来初始化对象对应的内存，代码演示
+3. 移动构造函数：也是用另一个对象来初始化对象，具体内容会在Part3第13节详细讲解。
+4. 默认构造函数：当类没有任何构造函数时，编译期会为该类生成一个默认的的构造函数，在最普通的类中，默认构造函数什么都没做，对象对应的内存没有被初始化。
+
+代码演示。
+
+总结：构造函数就是C++提供的必须有的在对象创建时初始化对象的方法，（默认的什么都不做也是一种初始化的方式）
+
+3. 析构函数：
+析构函数介绍：当类对象被销毁时，就会调用析构函数。栈上对象的销毁时机就是函数栈销毁时，代码演示。堆上的对象销毁时机就是该堆内存被手动释放时，如果用new申请的这块堆内存，那调用delete销毁这块内存时就会调用析构函数。
+
+代码演示：
+
+总结，当类对象销毁时有一些我们必须手动操作的步骤时，析构函数就派上了用场。所以，几乎所有的类我们都要写构造函数，析构函数却未必需要。
+
+### 2.（*）this，常成员函数与常对象
+
+1. this关键字：
+(1) this是什么：
+①编译器将this解释为指向函数所作用的对象的指针，这句话新手有些不好理解，用代码演示一下就好说了。C++类的本质就是C语言的结构体外加几个类外的函数，C++最后都要转化为C语言来实现，类外的函数就是通过this来指向这个类的。
+
+代码演示：
+
+②当然，这么说并非完全准确，this是一个关键字，只是我们将它当做指针理解罢了。
+
+this有很多功能是单纯的指针无法满足的。比如每个类函数的参数根本没有名 叫this的指针。这不过是编译器赋予的功能罢了。
+
+```cpp {.line-numbers, highlight=[14, 18]}
+#include <iostream>
+
+class Person{
+  public:
+  std::string name_;
+  int age_;
+  Person(std::string const& name, int age) : name_(name), age_(age){}
+
+  void OutPut(){
+    std::cout << this->name_ << "   " << this->age_ << std::endl;
+  }
+}
+
+void (Person::* func) () = &Person::OutPut;   // 一个无参类型就可以指向成员函数，说明this是看编译器如何解释的，而并不是带入函数参数中
+
+int main() {
+  Person p("xiaoming", 20);
+  (p.*func)();
+}
+
+```
+
+2. 常成员函数和常对象
+首先说一下：常成员函数和常对象很多人并不在意，确实，都写普通变量也可以。但是，我还是要提一点，在大型程序中，尽量加上const关键字可以减少很多不必要的错误。
+这一点，开发过大型程序的人应该深有体会，没开发过大型程序的人也不必在意，记住多用const，这是一个很好的习惯。
+
+(1) const关键字含义：普通的const在Part2的第4.5节就已经讲完了。所以这里说一下常成员函数和常对象。
+
+常成员函数就是无法修改成员变量的函数。可以理解为将this指针指向对象用const修饰的函数。
+常对象就是用const修饰的对象，定义好之后就再也不需要更改成员变量的值了。常对象在大型程序中还是很有意义的。
+
+代码演示：
+
+(2) 常成员函数注意事项：
+因为类的成员函数已经将this指针省略了，只能在函数后面加const关键字来实现无法修改类成员变量的功能了
+
+①注意：常函数无法调用了普通函数，否则常函数的这个“常”字还有什么意义。
+②成员函数能写作常成员函数就尽量写作常成员函数，可以减少出错几率。
+③同名的常成员函数和普通成员函数是可以重载的，常量对象会优先调用常成员函数，普通对象会优先调用普通成员函数
+
+代码演示。
+
+(3) 常对象注意事项：
+①常对象不能调用普通函数，这一点之前其实已经讲过了。
+②常函数在大型程序中真的很重要，很多时候我们都需要创建好就不再改变的对象。
+
+(4) 总结：再说一遍，毕竟重要的话说三遍吗！常成员函数和常对象要多用，这真的是一个非常好的习惯，写大项目可以少出很多bug，
+
+### 3. inline，mutable，default，delete
+
+这一节是Part3少有的不带“*”的课程。
+inline和mutable只要知道有这么个关键字就可以了。
+default和delete关键字是需要掌握的，但是比较简单，也就放在这里了。
+
+1. inline关键字
+(1) inline关键字的有什么作用：
+①在函数声明或定义中函数返回类型前加上关键字inline就可以把函数指定为内联函数。关键字inline必须与函数定义放在一起才能使函数成为内联，仅仅将inline放在函数声明前不起任何作用。
+
+②内联函数的作用，普通函数在调用时需要给函数分配栈空间以供函数执行，压栈等操作会影响成员运行效率，于是C++提供了内联函数将函数体放到需要调用函数的地方，用空间换效率。
+
+(2) inline关键字的注意事项：inline关键字只是一个建议，开发者建议编译器将成员函数当做内联函数，一般适合搞内联的情况编译器都会采纳建议。
+
+(3) Inline关键字的总结。使用inline关键字就是一种提高效率，但加大编译后文件大小的方式，现在随着硬件性能的提高，inline关键字用的越来越少了。
+
+2. mutable关键字
+(1) mutable关键字的作用：
+①Mutable意为可变的，与const相对，被mutable修饰的成员变量，永远处于可变的状态，即便处于一个常函数中，该变量也可以被更改。
+
+代码演示：
+
+这个关键字在现代C++中使用情况并不多，一般来说只有在统计函数调用次数时才会用到。
+
+(2) mutable关键字的注意事项
+①mutable是一种万不得已的写法，一个程序不得不使用mutable关键字时，可以认为这部分程序是一个糟糕的设计。
+②mutable不能修饰静态成员变量和常成员变量。
+
+(3) 总结：mutable关键字是一种没有办法的办法，设计时应该尽量避免，只有在统计函数调用次数这类情况下才推荐使用。这个关键字也称不上是重点。
+
+3. default关键字
+(1) default关键字的作用：default关键字的作用很简单。
+①在编译时不会生成默认构造函数时便于书写。
+
+②也可以对默认复制构造函数，默认的赋值运算符和默认的析构函数使用，表示使用的是系统默认提供的函数，这样可以使代码更加明显。
+
+③现代C++中，哪怕没有构造函数，也推荐将构造函数用default关键字标记，可以让代码看起来更加直观，方便。
+
+代码演示：
+
+总结：default关键字还是推荐使用的，在现代C++代码中，如果需要使用一些默认的函数，推荐用default标记出来。
+
+4. delete关键字
+(1) Delete关键字的作用：C++会为程序生成默认构造函数，默认复制构造函数，默认重载赋值运算符（重载部分会详细讲解）。
+
+在很多情况下，我们并不希望这些默认的函数被生成，在C++11以前，只能有将此 函数声明为私有函数或是将函数只声明不定义两种方式。
+
+C++11于是提供了delete关键字，只要在函数最后加上“=delete”就可以明确告诉 编译期不要默认生成该函数。
+
+代码演示：
+
+总结：delete关键字还是推荐使用的，在现代C++代码中，如果不希望一些函数默认生成，就用delete表示，这个功能还是很有用的，比如在单例模式中，
+
+### 4.友元类与友元函数
+
+抱歉：我在录视频时看错课数了，这应该是第4课的，所以这节课就又当第4课，又当第5课了，下一课还是第六课：
+
+1. 友元的介绍：友元就是可以让另一个类或函数访问私有成员的简单写法。
+
+代码演示：
+
+2. 注意：
+(1)友元会破坏封装性，一般不推荐使用，所带来的方便写几个接口函数就解决了。
+(2)(*)某些运算符的重载必须用到友元的功能，这才是友元的真正用途，具体怎么重载下一课就会讲。
+
+3. 总结：友元平常并不推荐使用，新手不要再纠结友元的语法了，只要可以用友元写出必须用友元的重载运算符就可以了，重载运算符下一课就会讲。
+
+### 5. 重载运算符
+
+重载运算符在整个C++中拥有非常重要的地位，这一节非常重要。
+
+1. 重载运算符的作用：
+(1) 很多时候我们想让类对象也能像基础类型的对象一样进行作基础操作，比如“+”，“-”，“*”，“\”，也可以使用某些运算符“=”，“()”，“[]”,“<<”，“>>”。但是一般的类即使编译器可以识别这些运算符，类对象也无法对这些运算符做出应对，我们必须对类对象定义处理这些运算符的方式。
+(2) C++提供了定义这些行为的方式，就是“operator 运算符”来定义运算符的行为，operator是一个关键字，告诉编译器我要重载运算符了。
+
+2. 注意：
+(1) 我们只能重载C++已有的运算符，所有无法将“**”这个运算符定义为指数的形式，因为C++根本没有“**”这个运算符。
+(2) C++重载运算符不能改变运算符的元数，“元数”这个概念就是指一个运算符对应的对象数量，比如“+”必须为“a + b”，也就是说“+”必须有两个对象，那么“+”就是二元运算符。比如“++”运算符，必须写为“a++”，也就是一元运算符。
+
+3. 重载运算符举例
+以下全部用代码演示：
+(1) 一元运算符重载
+①“++”，“--”,
+②“[]”
+③“()”
+④“<<”，“>>”
+(2) 二元运算符重载
+①“+”，“-”，“*”，“/”
+②“=”，
+③“>”，“<”，“==”
+
+至于唯一的三元运算符“?:”，不能重载
+(3) 类类型转化运算符：“operator 类型”
+(4) 特殊的运算符：new，delete，new[]，delete[]
+
+注意：“=”类会默认进行重载，如果不需要可以用“delete关键字进行修饰”。
+
+总结：重载运算符非常重要，C++类中几乎都要定义各种各种的重载运算符。
+
+### 6. 普通继承及其实现原理
+
+C++面向对象的三大特性：分装，继承，多态。分装就是类的权限管理，很简单，就不讲了。继承这节课讲，继承很重要，有些地方也是需要重点理解的。
+
+1. C++继承介绍：C++非继承的类相互是没有关联性的，假设现在需要设计医生，教师，公务员三个类，需要定义很多重复的内容而且相互没有关联，调用也没有规律。如果这还算好，那一个游戏有几千件物品，调用时也要写几千个函数。这太要命了。于是继承能力就应运而生了。
+
+代码演示：
+
+2. C++继承原理：C++的继承可以理解为在创建子类成员变量之前先创建父类的成员变量，实际上，C语言就是这么模仿出继承功能的。
+
+用excel表格演示一下：
+
+3. C++继承的注意事项。
+(1) C++子类对象的构造过程。先调用父类的构造函数，再调用子类的构造函数，也就是说先初始化父类的成员，再初始化子类的成员。
+(2) 若父类没有默认的构造函数，子类的构造函数又未调用父类的构造函数，则无法编译。
+(3) C++子类对象的析构过程。先调用子类的析构函数，再调用父类的析构函数。
+演示一下：
+
+总结：面向对象三大特性的继承就这么简单，很多人觉得类继承很复杂，其实完全不是这样的，只要明白子类在内存上其实就相当于把父类的成员变量放在子类的成员变量前面罢了。构造和析构过程也是为了这个机制而设计的。
+
+### 7.（**）虚函数及其实现原理，override关键字
+
+1. 虚函数介绍：
+(1) 虚函数就是面向对象的第三大特点：多态。多态非常的重要，它完美解决了上一课设计游戏装备类的问题，我们可以只设计一个函数，函数参数是基类指针，就可以调用子类的功能。比如射击游戏，所有的枪都继承自一个枪的基类，人类只要有一个开枪的函数就可以实现所有枪打出不同的子弹。
+(2) 父类指针可以指向子类对象，这个是自然而然的，因为子类对象的内存前面就是父类成员，类型完全匹配。（不要死记硬背，尽量理解原理）
+(3) 当父类指针指向子类对象，且子类重写父类某一函数时。父类指针调用该函数，就会产生以下的可能
+①该函数为虚函数：父类指针调用的是子类的成员函数。
+②该函数不是虚函数：父类指针调用的是父类的成员函数。
+
+代码演示：
+
+2. 虚函数的注意事项：
+(1) 子父类的虚函数必须完全相同，为了防止开发人员一不小心将函数写错，于是C++11添加了override关键字。
+
+代码演示：
+(2) (*) 父类的析构函数必须为虚函数：这一点很重要，当父类对象指向子类对象时，容易使独属于子类的内存泄露。会造成内存泄露的严重问题。
+
+代码演示
+
+3. overide关键字的作用：前面已经说过了，为了防止开发人员将函数名写错了，加入了override关键字。
+
+4. 虚函数实现多态的原理介绍
+(1) 动态绑定和静态绑定：
+①静态绑定：程序在编译时就已经确定了函数的地址，比如非虚函数就是静态绑定。
+②动态绑定：程序在编译时确定的是程序寻找函数地址的方法，只有在程序运行时才可以真正确定程序的地址，比如虚函数就是动态绑定。
+(2) 虚函数是如何实现动态绑定的呢？
+①每个有虚函数的类都会有一个虚函数表，对象其实就是指向虚函数表的指针，编译时编译器只告诉了程序会在运行时查找虚函数表的对应函数。每个类都会有自己的虚函数表，所以当父类指针引用的是子类虚函数表时，自然调用的就是子类的函数。
+代码演示：
+
+总结：虚函数是C++类的重要特性之一，很简单，但使用频率非常高，至于如何实现的也要掌握。
+
+### 8. 静态成员变量与静态函数
+
+1. 静态成员变量：
+(1) Part2的第六节课就讲过C语言的静态成员变量，在编译期就已经在静态变量区明确了地址，所以生命周期为程序从开始运行到结束，作用范围为与普通的成员变量相同。这些对于类的静态成员变量同样适用。
+
+代码演示：
+(2) 类的静态成员变量因为创建在静态变量区，所以直接属于类，也就是我们可以直接通过类名来调用，当然通过对象调用也可以。
+
+代码演示：
+
+2. 静态成员变量的注意项：
+(1) 静态成员变量必须在类外进行初始化，否则会报未定义的错误，不能用构造函数进行初始化。因为静态成员变量在静态变量区，只有一份，而且静态成员变量在编译期就要被创建，成员函数那都是运行期的事情了
+
+3. 静态成员函数的特点：静态成员函数就是为静态成员变量设计的，就是为了维持封装性。
+
+代码演示：
+
+### 9.（*）纯虚函数
+
+1. 纯虚函数介绍：
+(1) 还是那个枪械射击的例子，基础的枪类有对应的对象吗？没有。它唯一的作用就是被子类继承。
+(2) 基类的openfire函数实现过程有意义吗？没有。它就是用来被重写的。
+(3) 所以纯虚函数的语法诞生了，只要将一个虚函数写为纯虚函数，那么该类将被认为无实际意义的类，无法产生对象。纯虚函数也不用去写实际部分。写了编译期也会自动忽略。
+
+代码演示：
+
+2. 纯虚函数的注意事项：
+(1) 没什么注意事项，这个语法非常简单。
+
+3. 总结：纯虚函数的特点就是语法简单，却经常使用，必会。
+
+### 10.RTTI
+
+RTTI使用频率不是很高，但仍然有一定的意义，应当掌握。
+
+1. RTTI介绍：
+(1) RTTI（Run Time Type Identification）即通过运行时类型识别，程序能够通过基类的指针或引用来检查这些指针或引用所指向的对象的实际派生类。
+(2) C++为了支持多态，C++的指针或引用的类型可能与它实际指向对象的类型不相同，这时就需要rtti去判断类的实际类型了，rtti是C++判断指针或引用实际类型的唯一方式。
+
+2. RTTI的使用场景：可能有很多人会疑惑RTTI的作用，所以单独拿出来说一下。
+(1) 异常处理：这是RTTI最主要的使用场景，具体作用在异常处理章节会详细讲解。
+(2) IO操作：具体作用等到IO章节会详细讲解。
+
+3. RTTI的使用方式：RTTI的使用过程就两个函数
+(1) typeid函数：typeid函数返回的一个叫做type_info的结构体，该结构体包括了所指向对象的实际信息，其中name()函数就可以返回函数的真实名称。type_info结构体其他函数没什么用.
+
+代码演示：
+
+(2) dynamic_cast函数：C++提供的将父类指针转化为子类指针的函数。
+
+代码演示：
+
+4. RTTI的注意事项：
+(1) 当使用typeid函数时，父类和子类必须有虚函数（父类有了虚函数，子类自然会有虚函数），否则类型判断会出错。
+
+5. RTTI总结：就是C++在运行阶段判断对象实际类型的唯一方式。
+
+```cpp {.line-numbers, highlight=[3]}
+int main(){
+  Person * pe = new stu;
+  if (std::string(typeid(pe)) == "class Student"){
+
+  }
+}
+
+````
+
+### 11.多继承
+
+首先提一下：多继承了解一下就可以了。
+
+1. 多继承的概念
+(1) 就是一个类同时继承多个类，在内存上，该类对象前面依次为第一个继承的类，第二个继承的类，依次类推。
+
+代码演示：
+
+2. 多继承的注意点：
+(1) 多继承最需要注意的点就是重复继承的问题，这个问题下一个将会详细讲解。
+(2) 多继承会使整个程序的设计更加复杂，平常不推荐使用。C++语言中用到多继承的地方主要就是借口模式。相较于C++，java直接取消了多继承的功能，添加了借口。
+
+3. 多继承的总结：多继承这个语法虽然在某些情况下使代码写起来更加简洁，但会使程序更加复杂难懂，一般来说除了借口模式不推荐使用。
+
+### 12.虚继承及其实现原理
+
+1. 虚继承的概念：虚继承就是为了避免多重继承时产生的二义性问题。虚继承的问题用语言不好描述，但用代码非常简单，所以直接写代码了。
+
+代码演示：
+
+2. 虚继承的实现原理介绍：
+(1) 使用了虚继承的类会有一个虚继承表，表中存放了父类所有成员变量相对于类的偏移地址。
+(2) 按照刚才的代码，B1，B2类同时有一个虚继承表，当C类同时继承B1和B2类时，每继承一个就会用虚继承表进行比对，发现该变量在虚继承表中偏移地址相同，就只会继承一份。
+
+3. 虚继承的注意点：没什么需要注意的，语法简单。
+
+4. 虚继承的总结：这个语法就是典型的语法简单，但在游戏开发领域经常使用的语法，其它领域使用频率会低很多。
+
+### 13.（**）移动构造函数与移动赋值运算符
+
+1. 对象移动的概念：
+(1) 对一个体积比较大的类进行大量的拷贝操作是非常消耗性能的，因此C++11中加入了“对象移动”的操作
+(2) 所谓的对象移动，其实就是把该对象占据的内存空间的访问权限转移给另一个对象。比如一块内存原本属于A，在进行“移动语义”后，这块内存就属于B了。
+
+2. 移动语义为什么可以提高程序运行效率。因为我们的各种操作经常会进行大量的“复制构造”，“赋值运算”操作。这两个操作非常耗费时间。移动构造是直接转移权限，这是不是就快多了。
+
+注意：在进行转移操作后，被转移的对象就不能继续使用了，所以对象移动一般都是对临时对象进行操作（因为临时对象很快就要销毁了）。
+
+代码演示：
+
+注意这里的右值引用不能是const的，因为你用右值引用函数参数就算为了让其绑定到一个右值上去的！就是说这个右值引用是一定要变的，但是你一旦加了const就没法改变该右值引用了。
+
+3. 默认移动构造函数和默认移动赋值运算符
+
+会默认生成移动构造函数和移动赋值运算符的条件：
+
+只有一个类没有定义任何自己版本的拷贝操作（拷贝构造，拷贝赋值运算符），且类的每个非静态成员都可以移动，系统才能为我们合成。
+
+可以移动的意思就是可以就行移动构造，移动赋值。所有的基础类型都是可以移动的，有移动语义的类也是可以移动的。
+
+- [ ] [返回值优化](https://zhuanlan.zhihu.com/p/56008627)
+
+```cpp {.line-numbers, highlight=[1-3, 28, 81]}
+// 关闭编译器返回值优化：加入  -fno-elide-constructors  禁止rvo返回值优化
+// int a - 20;
+// std::move(a)  move函数实现移动语义
+
+#include <cstring>
+#include <iostream>
+
+class MyString {
+ public:
+  MyString() = default;
+  MyString(char const* src) {
+    if (src != nullptr) {
+      str_ = new char[strlen(src) + 1];
+      strcpy(str_, src);
+    }
+    std::cout << "construct" << std::endl;
+  }
+  MyString(MyString const& src) {
+    if (src.str_) {
+      str_ = new char[strlen(src.str_) + 1];
+      strcpy(str_, src.str_);
+    }
+    std::cout << "copy" << std::endl;
+  }
+  MyString(MyString&& src) {
+    if (src.str_) {
+      str_     = src.str_;
+      src.str_ = nullptr;
+    }
+
+    std::cout << "move" << std::endl;
+  }
+  MyString& operator=(MyString const& src) {
+    if (this == &src) {
+      return *this;
+    }
+    if (str_) {
+      delete[] str_;
+      str_ = new char[strlen(src.str_) + 1];
+      strcpy(str_, src.str_);
+    }
+    std::cout << "assgin" << std::endl;
+    return *this;
+  }
+  MyString& operator=(MyString&& src) {
+    if (str_) {
+      delete[] str_;
+      str_     = src.str_;
+      src.str_ = nullptr;
+    } else {
+      str_     = src.str_;
+      src.str_ = nullptr;
+    }
+    std::cout << "move assgin" << std::endl;
+    return *this;
+  }
+  ~MyString() {
+    delete[] str_;
+    std::cout << "deconstruct" << std::endl;
+  }
+
+  void Get() {
+    std::cout << str_ << std::endl;
+  }
+
+ private:
+  char* str_ = nullptr;
+};
+
+MyString get() {
+  MyString t("xiaoming");
+  return t;
+}
+
+int main() {
+  MyString str = get();
+  str.Get();
+  std::cout << "endl" << std::endl;
+}
+
+// construct      
+// move
+// deconstruct
+// move
+// deconstruct
+// xiaoming
+// endl
+// deconstruct
+
+```
+
+## Part4：智能指针
+
+### 1.（*）智能指针概述
+
+1. 为什么要有智能指针：在Part2的第二节课已经讲过，直接使用new和delete运算符极其容易导致内存泄露，而且非常难以避免。于是人们发明了智能指针这种可以自动回收内存的工具。
+
+2. 智能指针一共就三种：普通的指针可以单独一个指针占用一块内存，也可以多个指针共享一块内存。
+(1) 共享型智能指针：shared_ptr，同一块堆内存可以被多个shared_ptr共享。
+(2) 独享型智能指针：unique_ptr，同一块堆内存只能被一个unique_ptr拥有。
+(3) 弱引用智能指针：weak_ptr，也是一种共享型智能指针，可以视为对共享型智能指针的一种补充
+
+3. （*）智能指针注意事项：
+
+智能指针和裸指针不要混用，接下来的几节课会反复强调这一点。（这一点太重要了，所以上来就提了）
+
+### 2.（*）shared_ptr
+
+1. shared_ptr的工作原理
+
+(1) 我们在动态分配内存时，堆上的内存必须通过栈上的内存来寻址。也就是说栈上的指针（堆上的指针也可以指向堆内存，但终究是要通过栈来寻址的）是寻找堆内存的唯一方式。
+
+(2) 所以我们可以给堆内存添加一个引用计数，有几个指针指向它，它的引用计数就是几，当引用计数为0是，操作系统会自动释放这块堆内存。
+
+2. Shared_ptr的常用操作
+(1) shared_ptr的初始化
+①使用new运算符初始化
+
+代码演示：
+
+一般来说不推荐使用new进行初始化，因为C++标准提供了专门创建shared_ptr的函数“make_shared”，该函数是经过优化的，效率更高。
+
+②使用make_shared函数进行初始化：
+
+代码演示：
+
+注意：千万不要用裸指针初始化shared_ptr，容易出现内存泄露的问题。
+
+③当然使用复制构造函数初始化也是没有问题的。
+
+代码演示:
+
+(2) shared_ptr的引用计数：
+
+智能指针就是通过引用计数来判断释放堆内存时机的。
+use_count()函数可以得到shared_ptr对象的引用计数。
+
+代码演示：
+
+3. 智能指针可以像普通指针那样使用，”share_ptr”早已对各种操作进行了重载，就当它是普通指针就可以了。
+
+代码演示：
+
+4. Shared_ptr的常用函数
+(3) unique函数：判断该shared_ptr对象是否独占若独占，返回true。否则返回false。
+
+代码演示：
+
+(4) reset函数：
+①当reset函数有参数时，改变此shared_ptr对象指向的内存。
+②当reset函数无参数时，将此shared_ptr对象置空，也就是将对象内存的指针设置为nullptr。
+
+代码演示：
+
+(5) get函数，强烈不推荐使用：
+
+代码演示：
+如果一定要使用，那么一定不能delete返回的指针。
+
+(6) swap函数：交换两个智能指针所指向的内存
+①std命名空间中全局的swap函数
+②shared_ptr类提供的swap函数
+
+5. 关于智能指针创建数组的问题。
+
+代码演示：
+
+6. 用智能指针作为参数传递时直接值传递就可以了。shared_ptr的大小为固定的8或16字节（也就是两倍指针的的大小，32位系统指针为4个字节，64位系统指针为8个字节，shared_ptr中就两个指针），所以直接值传递就可以了。
+
+代码演示：
+
+7. shared_ptr总结：在现代程序中，当想要共享一块堆内存时，优先使用shared_ptr，可以极大的减少内存泄露的问题。
+
+### 3.（*）weak_ptr
+
+1. weak_ptr介绍：
+(1) 这个智能指针是在C++11的时候引入的标准库，它的出现完全是为了弥补shared_ptr天生有缺陷的问题，其实shared_ptr可以说近乎完美。
+(2) 只是通过引用计数实现的方式也引来了引用成环的问题，这种问题靠它自己是没办法解决的，所以在C++11的时候将shared_ptr和weak_ptr一起引入了标准库，用来解决循环引用的问题。
+
+2. shared_ptr的循环引用问题：
+
+3. weak_ptr的作用原理：weak_ptr的对象需要绑定到shared_ptr对象上，作用原理是weak_ptr不会改变shared_ptr对象的引用计数。只要shared_ptr对象的引用计数为0，就会释放内存，weak_ptr的对象不会影响释放内存的过程。
+
+重新回到刚才的代码：
+
+4. weak_ptr的总结：weak_ptr使用较少，就是为了处理shared_ptr循环引用问题而设计的。
+
+### 4.（*）unique_ptr
+
+1. uniqe_ptr介绍：独占式智能指针，在使用智能指针时，我们一般优先考虑独占式智能指针，因为消耗更小。如果发现内存需要共享，那么再去使用“shared_ptr”。
+
+2. unique_ptr的初始化：和shared_ptr完全类似
+(1) 使用new运算符进行初始化
+
+代码演示：
+(2) 使用make_unique函数进行初始化
+
+代码演示：
+
+3. unique_ptr的常用操作
+(1) unque_ptr禁止复制构造函数，也禁止赋值运算符的重载。否则独占便毫无意义。、
+
+代码演示：
+(2) unqiue_ptr允许移动构造，移动赋值。移动语义代表之前的对象已经失去了意义，移动操作自然不影响独占的特性。
+
+代码演示：
+(3) reset函数：
+①不带参数的情况下：释放智能指针的对象，并将智能指针置空。
+②带参数的情况下：释放智能指针的对象，并将智能指针指向新的对象。
+
+代码演示：
+
+4. 将unque_ptr的对象转化为shared_ptr对象，当unique_ptr的对象为一个右值时，就可以将该对象转化为shared_ptr的对象。
+这个使用的并不多，需要将独占式指针转化为共享式指针常常是因为先前设计失误。
+注意：shared_ptr对象无法转化为unique_ptr对象。
+
+代码演示：
+
+### 5.（**）智能指针的使用范围
+
+这节课一共就几句话，但仍然是两个（*），足以说明如何使用智能指针的重要性。
+
+1. 能使用智能指针就尽量使用智能指针，那么哪些情况属于不能使用智能指针的情况   呢？
+
+有些函数必须使用C语言的指针，这些函数又没有替代，这种情况下，才使用普通的指针，其它情况一律使用智能指针。
+
+必须使用C语言指针的情况包括：
+（1） 网络传输函数，比如windows下的send，recv函数，只能使用c语言指针，无法替代.
+（2） c语言的文件操作部分。这方面C++已经有了替代品，C++的文件操作完全支持智能指针，所以在做大型项目时，推荐使用C++的文件操作功能（Part7会详细讲解）。
+
+除了以上两种情况，剩下的均推荐使用智能指针。
+
+2. 我们应该使用哪个智能指针呢？
+(1) 优先使用unique_ptr，内存需要共享时再使用shared_ptr。
+(2) 当使用shared_ptr时，如果出现了循环引用的情况，再去考虑使用weak_ptr。
+
+3. 总结：智能指针部分就这样了，东西真的不多，但都非常重要，很常用的。
+
+```cpp {.line-numbers, highlight=[14, 73-74, 77]}
+#include <algorithm>
+#include <cwchar>
+#include <iostream>
+#include <memory>
+#include <mutex>
+#include <utility>
+
+#include <__memory/shared_ptr.h>
+
+class B;
+
+class A {
+ public:
+  std::weak_ptr<B> ptr_b;  // 只要将其中一个改为weak_ptr即可，可保证堆中一个会被销毁，也就销毁了另一个指向
+};
+
+class B {
+ public:
+  std::shared_ptr<A> ptr_a;
+};
+
+void func(std::unique_ptr<int> ptr) {}
+int main() {
+  std::shared_ptr<int> ptr = std::make_shared<int>(100);
+  std::shared_ptr<int> ptr2(ptr);
+  std::cout << ptr.unique() << std::endl;
+  ptr.reset(new int(200));
+  std::cout << ptr2.use_count() << std::endl;
+  std::cout << ptr2.unique() << std::endl;
+  std::cout << ptr.unique() << std::endl;
+
+  std::cout << " --------" << std::endl;
+  std::cout << *ptr << std::endl;
+  std::cout << *ptr2 << std::endl;
+  ptr.swap(ptr2);
+  std::cout << "---------" << std::endl;
+  std::cout << *ptr << std::endl;
+  std::cout << *ptr2 << std::endl;
+
+  std::cout << "---------" << std::endl;
+
+  std::swap(ptr, ptr2);
+  std::cout << *ptr << std::endl;
+  std::cout << *ptr2 << std::endl;
+
+  std::cout << "---------" << std::endl;
+  std::cout << *(ptr.get()) << std::endl;
+
+  std::cout << "---------" << std::endl;
+  std::cout << sizeof(ptr) << std::endl;
+
+  std::cout << "---------" << std::endl;
+  std::shared_ptr<int> nums_ptr(new int[5]{1, 20, 30, 40, 50});
+  std::cout << nums_ptr.get()[2] << std::endl;
+
+  std::cout << "--------------" << std::endl;
+
+  std::shared_ptr<A> a_ptr = std::make_shared<A>(A());
+  std::shared_ptr<B> b_ptr = std::make_shared<B>(B());
+  a_ptr->ptr_b             = b_ptr;
+  b_ptr->ptr_a             = a_ptr;
+  std::cout << a_ptr.use_count() << std::endl;
+  std::cout << b_ptr.use_count() << std::endl;
+
+  std::cout << "------------" << std::endl;
+  std::weak_ptr<A> ptr_weak(a_ptr);
+  std::cout << a_ptr.use_count() << std::endl;
+
+  std::cout << "------------" << std::endl;
+  std::unique_ptr<int> ptr_unique(new int(100));
+  std::unique_ptr<int> ptr_uni(new int(200));
+  std::cout << *ptr_unique << std::endl;
+  std::unique_ptr<int> ptr_un(std::move(ptr_unique));  // 通过move函数形成右值，进行移动构造
+  ptr_uni = std::move(ptr_un);  // 通过move函数形成右值，进行移动赋值  移动语义就是把持有指针置空，后面直接用不到
+
+  std::unique_ptr<int> uni_ptr(new int(300));
+  std::shared_ptr<int> sh_ptr(std::move(uni_ptr));  // share_ptr支持unique_ptr右值转换为share_ptr
+
+  std::shared_ptr<int> ptr_share(std::shared_ptr<int>(new int(100)));
+  std::cout << ptr_share.use_count() << std::endl;
+}
+
+```
+
+- [ ] [网络库的一些东西](https://zhuanlan.zhihu.com/p/37590580)
+
+## Part5：模板与泛型编程
+
+### 1.（*）模板介绍，类模板与模板实现原理
+
+1. 模板的重要性：模板是C++最重要的模块之一，很多人对模板的重视不够，这一章一定要好好学，所有课时都是重点。
+
+C++的三大模块，面向过程，面向对象，模板与泛型。面向过程就是C语言，面向对象就是类，现在轮到模板与泛型了。
+
+2. 模板的介绍：
+(1) 模板能够实现一些其他语法难以实现的功能，但是理解起来会更加困难，容易导致新手摸不着头脑。
+(2) 模板分为类模板和函数模板，函数模板又分为普通函数模板和成员函数模板。
+
+3. 类模板基础：
+这节课讲一下类模板，函数模板下一课再讲
+
+(1) 类模板的写法与使用十分固定
+
+代码演示：注意，这段代码非常有代表性，在下一课补完后，一定要掌握，多看几遍。
+
+4. 模板的实现原理：
+模板需要编译两次，在第一次编译时仅仅检查最基本的语法，比如括号是否匹配。等函数真正被调用时，才会真正生成需要的类或函数。
+
+所以这直接导致了一个结果，就是不论是模板类还是模板函数，声明与实现都必须放在同一个文件中。因为在程序在编译期就必须知道函数的具体实现过程。如果实现和声明分文件编写，需要在链接时才可以看到函数的具体实现过程，这当然会报错。
+
+于是人们发明了.hpp文件来存放模板这种声明与实现在同一文件的情况。
+
+```cpp
+
+#include <cstddef>
+#include <iostream>
+#include <vector>
+
+template <class T>
+class MyArray {
+  using iterator       = T*;
+  using const_iterator = T const*;
+
+ public:
+  MyArray<T>(size_t size);
+  MyArray<T>(MyArray<T> const& src)            = delete;
+  MyArray<T>(MyArray<T>&& src)                 = delete;
+  MyArray<T>& operator=(MyArray<T> const& src) = delete;
+  MyArray<T>& operator=(MyArray<T>&& src)      = delete;
+  ~MyArray<T>();
+
+  iterator begin() const;
+  const_iterator cbegin() const;
+
+ private:
+  T* ptr_;
+};
+
+template <class T>
+MyArray<T>::MyArray(size_t size) {
+  ptr_ = new T[size];
+}
+
+template <class T>
+MyArray<T>::~MyArray<T>() {
+  delete[] ptr_;
+}
+
+template <class T>
+typename MyArray<T>::iterator MyArray<T>::begin() const {
+  return ptr_;
+}
+
+template <class T>
+typename MyArray<T>::const_iterator MyArray<T>::cbegin() const {
+  return ptr_;
+}
+
+int main() {
+  MyArray<int> my_array(100);
+  std::cout << (my_array.begin())[2] << std::endl;
+}
+
+```
+
+### 2.（*）initializer_list与typename
+
+1. initializer_list的用法
+(1) initializer_list介绍：initializer_list其实就是初始化列表，我们可以用初始化列表初始化各种容器，比如“vector”，“数组”。
+
+代码演示：
+
+(2) 这节课的主要任务是在上一课的代码中加入initializer_list。
+
+代码演示：
+
+2. typename的用法
+(1) 在定义模板时表示这个一个待定的类型
+
+代码演示：
+
+(2) 在类外表明自定义类型时使用
+
+代码演示：
+
+在C++的早期版本，为了减少关键字数量，用class来表示模板的参数，但是后来因为第二个原因，不得不引入typename关键字。
+
+```cpp {.line-numbers, highlight=[14, 19, 31-32, 45, 55, 59-61, 64, 79]}
+
+#include <algorithm>
+#include <cstddef>
+#include <initializer_list>
+#include <iostream>
+#include <memory>
+#include <type_traits>
+#include <vector>
+
+template <class T>
+struct get_type {
+  using g_type = T;
+};
+
+// template <>  //全特化
+// struct get_type<class T*> {
+//   using g_type = T;
+// };
+
+template <class T>  // 偏特化
+struct get_type<T*> {
+  using g_type = T;
+};
+
+template <class T>
+class MyArray {
+  using iterator       = T*;
+  using const_iterator = T const*;
+
+ public:
+  MyArray<T>(size_t size);
+  MyArray<T>(std::initializer_list<T> const& list);  // 初始化列表左值构造
+  MyArray<T>(std::initializer_list<T>&& list);       // 初始化列表右值构造
+  MyArray<T>(MyArray<T> const& src)            = delete;
+  MyArray<T>(MyArray<T>&& src)                 = delete;
+  MyArray<T>& operator=(MyArray<T> const& src) = delete;
+  MyArray<T>& operator=(MyArray<T>&& src)      = delete;
+  ~MyArray<T>();
+
+  T& operator[](int index) const;
+
+  iterator begin() const;
+  const_iterator cbegin() const;
+
+ private:
+  T* ptr_;  // 用vector<T>避免c风格数组麻烦的处理内存泄露方式
+};
+
+template <class T>
+MyArray<T>::MyArray(size_t size) {
+  ptr_ = new T[size];
+}
+
+template <class T>
+MyArray<T>::MyArray(
+    std::initializer_list<T> const& list) {  // 重点问题：当类型为指针时怎么搞---解决办法：类型萃取，模板特化
+  if (list.size()) {
+    unsigned count = 0;
+    ptr_           = new T[list.size()];
+    // 类型萃取     比模板特化强于可随意提取类型，模板特化相当于重写个模板，当大模板时代码量大，繁琐
+    if (std::is_pointer<T>::value) {  // ????????????????不是很明白实现原理  ::双冒号作用域都是取成员变量和函数，取类型需用typename
+      // 指针类型，需要进行深拷贝
+      for (auto item : list) {
+        ptr_[count++] = new
+            typename get_type<T>::g_type(*item);  // typename 的作用的就是声明其它类中的新类型；利用特化得出指针指向类型
+      }
+    } else {
+      for (auto const& item : list) {
+        ptr_[count++] = item;
+      }
+    }
+  } else {
+    ptr_ = nullptr;
+  }
+}
+
+template <class T>
+MyArray<T>::MyArray(std::initializer_list<T>&& list) {
+  if (list.size()) {
+    // 右值 无论指针和其它类型直接浅拷贝，对于任一类型的临时值只是把用的指针指向nullptr，因此临时值析构不影响原堆空间
+    ptr_           = new T[list.size()];
+    unsigned count = 0;
+    for (auto const& item : list) {
+      ptr_[count++] = item;
+    }
+  } else {
+    ptr_ = nullptr;
+  }
+}
+
+template <class T>
+MyArray<T>::~MyArray<T>() {
+  delete[] ptr_;
+}
+
+template <class T>
+T& MyArray<T>::operator[](int index) const {
+  return ptr_[index];
+}
+
+template <class T>
+typename MyArray<T>::iterator MyArray<T>::begin() const {
+  return ptr_;
+}
+
+template <class T>
+typename MyArray<T>::const_iterator MyArray<T>::cbegin() const {
+  return ptr_;
+}
+
+int main() {
+  // MyArray<int> my_array(100);
+  // std::cout << (my_array.begin())[2] << std::endl;
+
+  int a = 10;
+  int b = 20;
+  int c = 30;
+  std::initializer_list<int*> list{&a, &b, &c};
+  MyArray<int*> my_array(list);
+  for (int i = 0; i < list.size(); ++i) {
+    std::cout << *(my_array[i]) << std::endl;
+  }
+}
+
+```
+
+### 3.（*）函数模板，成员函数模板
+
+1. 普通函数模板的写法与类模板类似
+
+代码演示：
+在现代C++中，函数模板一直普遍使用，一定要掌握。
+
+2. 成员函数模板
+
+代码演示：
+成员函数模板使用情况也不少，需要掌握的
+
+```cpp {.line-numbers, highlight=[16]}
+#include <iostream>
+#include <vector>
+
+namespace mynamespace {
+
+template <typename iter_type, typename func_type>
+void for_each(iter_type first, iter_type last, func_type func) {
+  for (iter_type iter = first; iter < last; ++iter) {
+    func(*iter);
+  }
+}
+
+template <class T>
+class MyVector {
+ public:
+  template <typename mytype>  // 成员函数模板是为了实现完美转发
+  void out(mytype const& src);
+};
+
+template <class T>
+template <typename mytype>
+void MyVector<T>::out(mytype const& src) {
+  std::cout << src << std::endl;
+}
+
+}  // namespace mynamespace
+
+int main() {
+  std::vector<int> vec;
+  vec.push_back(20);
+  vec.push_back(30);
+  mynamespace::for_each<std::vector<int>::iterator, void (*)(int&)>(vec.begin(), vec.end(), [](int& item) { ++item; });
+  for (int& item : vec) {
+    std::cout << item << std::endl;
+  }
+
+  mynamespace::MyVector<int> my_vec;
+  my_vec.out<int>(20);
+}
+
+```
+
+### 4.（*）默认模板参数
+
+默认模板参数：
+(1) 默认模板参数是一个经常使用的特性，比如在定义vector对象时，我们就可以使用  默认分配器。
+
+(2) 模板参数就和普通函数的默认参数一样，一旦一个参数有了默认参数，它之后的参     数都必须有默认参数
+
+(3) 函数模板使用默认模板参数
+
+代码演示：
+(4) 类模板使用模板参数
+
+代码演示：
+
+类模板使用模板参数的注意点：
+
+```cpp
+
+#include <functional>
+#include <iostream>
+#include <memory>
+#include <vector>
+
+namespace mynamespace {
+
+using fun_type = std::function<void(int&)>;
+template <typename iter_type, typename func_type = fun_type>
+void for_each(
+    iter_type first, iter_type last, func_type func = [](int& item) { std::cout << item << std::endl; }) {
+  for (iter_type iter = first; iter < last; ++iter) {
+    func(*iter);
+  }
+}
+
+template <class T, class allocator_type = std::allocator<T>>
+class MyVector {
+ public:
+  template <typename mytype>  // 成员函数模板是为了实现完美转发
+  void out(mytype const& src);
+};
+
+template <class T, class allocator_type>
+template <typename mytype>
+void MyVector<T, allocator_type>::out(mytype const& src) {
+  std::cout << src << std::endl;
+}
+
+}  // namespace mynamespace
+
+int main() {
+  std::vector<int> vec;
+  vec.push_back(20);
+  vec.push_back(30);
+  mynamespace::for_each<std::vector<int>::iterator, void (*)(int&)>(vec.begin(), vec.end(), [](int& item) { ++item; });
+  for (int& item : vec) {
+    std::cout << item << std::endl;
+  }
+
+  mynamespace::MyVector<int> my_vec;
+  my_vec.out<int>(20);
+
+  std::cout << "---------" << std::endl;
+
+  mynamespace::for_each(vec.begin(), vec.end());
+}
+
+```
+
+### 5.（*）模板的重载，全特化和偏特化
+
+1. 模板的重载
+(1) 函数模板是可以重载的（类模板不能被重载），通过重载可以应对更加复杂的情况。比如在处理char*和string对象时，虽然都可以代表字符串，但char*在复制时直接拷贝内存效率明显更高，string就不得不依次调用构造函数了。所以在一些比较最求效率的程序中对不同的类型进行不同的处理还是非常有意义的。
+
+代码演示：
+其实函数模板的重载和普通函数的重载没有什么区别。
+
+在讲完类模板的特化后就能知道重载和特化的区别了，这一点暂时不用在意。
+
+2. 模板的特化
+(1) 模板特化的意义：函数模板可以重载以应对更加精细的情况。类模板不能重载，但可以特化来实现类似的功能。
+(2) 模板的特化也分为两种，全特化和偏特化。模板的全特化：就是指模板的实参列表与与相应的模板参数列表一一对应。
+
+这么说可能有些繁琐，直接看代码其实并不复杂，
+代码演示：
+
+(3) 模板的偏特化：偏特化就是介于普通模板和全特化之间，只存在部分类型明确化，而非将模板唯一化。
+
+代码演示：
+
+(4) 其实对于函数模板来说，特化与重载可以理解为一个东西。
+
+总结：函数模板的重载，类模板的特化。还是比较重要的知识点，应当掌握，在一些比较复杂的程序中，模板重载与特化是经常使用的。
+
+```cpp
+
+#include <iostream>
+
+template <typename T>
+void test(T value) {
+  std::cout << "void test(T value)" << std::endl;
+}
+
+template <typename T>
+void test(T const& value) {
+  std::cout << "void test(T const& value)" << std::endl;
+}
+
+template <typename T>
+void test(T* value) {
+  std::cout << "void test(T* value)" << std::endl;
+}
+
+template <class T1, class T2>
+class MyClass {
+ public:
+  MyClass<T1, T2>() {
+    std::cout << "wanquan fan hua" << std::endl;
+  }
+};
+
+template <class T1>
+class MyClass<T1, int> {
+ public:
+  MyClass<T1, int>() {
+    std::cout << "pian te hua" << std::endl;
+  }
+};
+
+template <class T1, class T2>
+class MyClass<T1, T2*> {
+ public:
+  MyClass<T1, T2*>() {
+    std::cout << "* hao te hau" << std::endl;
+  }
+};
+
+int main() {
+  int a = 20;
+  test(&a);
+
+  MyClass<int, int*> my_class;
+}
+
+```
+
+## Part6：stl标准库
+
+### 1.（*）stl介绍与6大模块介绍
+
+1. stl的介绍：
+(1) stl就是（standard template library）的简称，定义在std命名空间中，定义了C++常用的容器与算法等。
+
+可以说stl极大的提高了我们的程序开发效率。
+在C++开发中，可以说：不会用stl的人，会用stl但不懂stl实现原理的人，既会使用stl，又懂得stl实现原理的人是完完全全的三个档次。
+
+(2) 泛型编程的概念：用模板进行编程，可以实现一些其它方式难以实现的功能，但对于新手来说，泛型编程可能会难以理解，摸不着头脑。
+也就是说，模板是学习泛型编程的基础。
+注意：泛型编程不属于面向对象编程的范畴，泛型编程和面向对象编程是并列的。
+
+(3) stl作为泛型编程的最典型代表，它实现了其它编程方式难以实现的效果，比如将整个模板库分为六个部分，每个部分可以单独设计。举个最简单的例子，vector和map在数据结构方面完全不一样，但stl可以设计出“迭代器”这个模块，让该模块可以在不同的数据结构中按照同样的方式运行。这种技术没有泛型编程是难以实现的。
+
+2. 学习stl的注意事项
+(1) 学习stl一定要有全局观念，不要局限于单个容器，重点在于明白六大组件之间的联系。
+(2) 当然，如果只是单纯为了应付当前的业务，单独学一下某个容器的用法也没有问题。
+
+3. SLT的六大容器介绍：
+(1) 容器（container）：是一种数据结构，也就是真正用来存储数据的地方。分为三类
+①顺序式容器：
+②关联式容器：
+③无序式容器：其实无序式容器也是一种关联式容器，但是既然C++标准委员会将无序容器与关联式容器平行的列了出来，那么我们这里也就让无序式容器和关联式容器平行吧。
+
+(2) 迭代器（iterator）：提供了可以访问任何容器的方法。
+(3) 算法（alogorithm）：用来操作容器中的数据的模板函数。
+(4) 仿函数（functor）
+(5) 适配器（adaptor）
+(6) 分配器（allocator）
+
+这一课只要知道有这六大模块就可以了。至于这六大模块是干什么的，后面慢慢介绍。
+
+### 2.*）容器
+
+容器的各项操作我已经单独列出来的了，就在附页3。这里只介绍最核心的操作。
+
+这门课就不讲基础的数据结构了，这些东西建议熟练之后用来提升自己。数组，链表，树，哈希表如果不明白，可以去百度一下，新手了解概念就可以了。
+
+1. 顺序容器（sequence container）：每个元素都有固定的位置，位置取决于插入时间和地点，与元素的值无关
+(1) vector：将元素置于一个动态数组中，可以随机存储元素（也就是用索引直接存取）。
+
+数组尾部添加或删除元素非常迅速。但在中部或头部就比较费时。
+
+代码演示：
+
+(2) deque：“double end queue”的缩写，也就是双端队列。deque的实现相比于vector有些复杂，但本质仍然是优化过的动态数组，只不过相比于单纯的动态数组，在前面添加或删除元素非常快了。
+
+可以随机存储元素。头部和尾部添加或删除元素都非常快（略慢与vector）。但在 中间插入元素比较费时（和vector差不多）。
+
+代码演示：
+
+(3) list：本质就是链表，所以自然具有了链表的属性。
+
+不能随机存取元素（也就是list无法用索引存取元素）。在任何位置插入和删除元 素都比较迅速。（在任何位置插入删除元素的时间相同，在元素头部操作慢于deque，在元素尾部操作慢于deque和vector）
+
+代码演示：
+
+(4) string：没什么好说的，就是把普通字符串封装了一下
+
+代码演示：
+
+(5) forward_list：单项链表，简单来说就是受限的list，凡是list不支持的功能，它都不支持。做各种支持的操作效率都会高于list，最典型的就排序算法了，forword_list要优于list。
+
+①ForwordList 只提供前向迭代器，而不是双向迭代器。因此它也不支持反向迭代器。
+②ForwordList不提供成员函数 size()。
+③ForwordList 没有指向最末元素的锚点。基于这个原因，不提供用以处理最末元素的成员 back(),push_back(),pop_back()。
+
+2. 关联容器（associated container）：元素位置取决于元素的值，和插入顺序无关。
+(1) set/multiset：使用“红黑树”实现，是一种高度平衡的二叉树，如果大家不了解红黑树，可以去百度一下。了解个大概就可以了。二叉树的本质决定了set/multiset的元素存取值取决于元素本身的值，和插入顺序无关。
+
+内部元素的值依据元素的值自动排列，与插入顺序无关。set内部相同数值的元素只能出现一次，multiset内部相同数值的元素可出现多次。容器用二叉树实现，便于查找。
+
+代码演示：
+
+(2) map/multimap：使用“红黑树”实现，是一种高度平衡的二叉树。
+
+内部元素是成对的“key/value”，也就是“键值/实值”，内部元素依据其键值自动排序，map内部相同的键值只能出现一次，multimap则可以出现多次。
+
+代码演示：
+
+3. 无序式容器（unordered container）：
+(1) unordered_map/unordered_multimap：使用“哈希表”实现的，由于哈希表的特性，实现了真正的无序。如果不理解为什么使用“哈希表”就是真正无序的，可以去百度一下“哈希表”，或者干脆直接记住就可以了。
+
+使用方法也是“key/value”，和map/multimap类似。
+
+(2) unordered_set/unorder_multiset：同样使用“哈希表”实现的。自然具有了哈希表实现的容器的特点。
+
+使用方法和setl/multiset类似。
+
+4. 关联式容器和无序式容器的对比：
+(1) 关联式容器都是有序的，对于那些对顺序有要求的操作，关联式容器效率会高很多。（比如增加元素，删除元素）
+(2) 无序容器都是真正的无序，在查找数据方面有着优势。（比如修改特定元素，查找元素）
+(3) 从内存消耗的角度讲，无序容器要高于关联容器不过这并不重要。
+
+一句话来说，如果从这两类容器中选一个使用的话。如果是增加，删除元素比较频繁，就使用关联式容器。如果修改元素，查找元素比较平凡，就使用无序容器。
+
+5. 我们在处理数据时应该选择什么容器呢？
+(1) 在我们需要使用存储“key/value”的容器时，只能使用map/multimap/unoredered_map/unordered_multimap。如果增加删除频繁，就使用map/multimap，修改，查找频繁，就使用unordered_map/unoredered_multimap。
+
+在真正的大型项目中，常常会对这两种容器进行测试，普通练习靠感觉就可以了
+
+(2) 在处理普通元素：
+①当元素需要频繁插入删除时，选择顺序容器。
+1)如果在尾部插入删除，选择vector
+2)在头部，尾部插入删除，选择deque
+3)在中间插入，删除，选择list
+
+②当元素需要频繁查找时，选择.set/multiset/unorder_set/unorder_multiset。
+1)频繁增加，删除时，选set，
+2)频繁查找，修改时，选ordered_set
+
+我们发现，对于普通元素，容器的选择不怎么容易判断。
+其实在真正的大型项目中，要对各种容器进行测试的，普通练习一般选择vector或set就可以了。这两个使用是比较频繁的，
+
+### 3.（*）迭代器
+
+1. 迭代器介绍：迭代器提供了一种可以顺序访问容器各个元素的方法，可以让我们无视不同容器存储方式的不同，用同一的方式访问数据。经过前面对容器的学习，相信大家已经体会到这一点了。
+
+2. 迭代器的作用：能够让迭代器与容器，算法在设计，使用时互不干扰，又能无缝耦合起来。使用迭代器可以灵活操作各种容器算法，而不需要考虑不同容器间的差异。
+
+### 4.（*）算法
+
+1. stl的算法可以分为九个种类，具体有什么已经在“附录一”中完全列举了。
+(1) 查找算法：
+(2) 排序算法：
+(3) 删除和替换算法：
+(4) 排列组合算法：
+(5) 算数算法：
+(6) 生成和异变算法：
+(7) 关系算法：
+(8) 集合算法：
+(9) 堆算法：
+
+在这里只列举一些比较常用的，剩下的那些大家如果使用可以在“附录一”中查找。
+代码演示：
+
+```cpp {.line-numbers, highlight=[12, 15]}
+
+#include <algorithm>
+#include <iostream>
+#include <iterator>
+#include <vector>
+
+int main() {
+  std::vector<int> vec{20, 23, 30, 10, 30, 40, 50, 60};
+  auto iter = std::adjacent_find(vec.begin(), vec.end(), [](int item, int target) { return item > 40; });
+  std::cout << *iter << std::endl;
+  std::cout << std::distance(vec.begin(), iter) << std::endl;
+  std::cout << "----------" << std::endl;
+  // 排序和查找的坑：排序和查找的可调用对象都需要支持同一规则   func(item1, item2)  return item1 < item2 升序  return item1 > item2 降序  c++中非0代表真
+  std::sort(vec.begin(), vec.end(), [](int item, int ele) {
+    return (ele - item) > 0;
+  });  // 大于0 第一个形参形参放前面，小于0放后面
+  std::for_each(vec.begin(), vec.end(), [](int item) { std::cout << item << std::endl; });
+  std::cout << (std::binary_search(vec.begin(), vec.end(), 50, [](int target, int item) { return item > target; })
+                    ? "true"
+                    : "false")
+            << std::endl;
+}
+
+// funcitonal使得可以提高模板效率，减少多次重复模板实例化
+
+```
+
+### 5.仿函数
+
+1. 仿函数定义：就是一个可以调用“()”运算符的类对象，在Part2的第10节，Part3的第五节就已经详细介绍过仿函数了。将operator()重载的类的对象就是仿函数。
+
+简单来说，就是我们在用算法时最后一个参数需要一个可调用对象，stl本身已经帮我们定义了很多可调用对象，不用我们自己再去定义了。
+
+### 6.适配器与分配器
+
+1. 什么是容器适配器：“适配器是使一种事物的行为类似于另外一种事物行为的一种机制”。适配器对容器进行包装，使其表现出另外一种行为。例如：stack<int> 实现了栈的功能，内部默认使用deque<int>容器来存储数据。
+
+2. STL的适配器有哪些：标准库提供了三种顺序容器适配器，没有关联型容器的适配器。分别是queue（队列），priority_queue（优先级队列），stack（栈）。
+3. 适配器的使用：
+(1) 要使用适配器，首先需要引入对应的头文件
+①要使用stack，                  需要#include<stack>
+②要使用queue或priority_queue，  需要#include<queue>
+
+代码演示：
+
+![](/assets/images/2022-10-30-15-35-20.png)
+
+代码演示：
+
+(3) 适配器的初始化：
+①普通的初始化方式：             stack<int>  stk。
+②覆盖默认容器类型的初始化方式： stack<int, vector<int>>    stk
+
+4. 分配器提一下就可以了。在分配动态内存时，直接使用new，delete容易产生内存碎片化的问题，不同的分配器有不同的分配内存的方法，可以大幅提高程序对堆内存的使用效率，我们直接使用默认的分配器就可以了
+
+```cpp {.line-numbers, highlight=[21]}
+
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
+namespace mynamespace {
+inline namespace innernamespace {
+  class MyClass {
+   public:
+    int age_;
+    MyClass() : age_(20) {}
+  };
+
+  extern MyClass my_class;
+}  // namespace innernamespace
+}  // namespace mynamespace
+
+mynamespace::my_class = mynamespace::MyClass();
+int main() {
+  std::cout << mynamespace::my_class.age_ << std::endl;
+}
+// cin在多文件中是一份还是多份？？？？？？？？？？
+
+```
+
+```cpp {.line-numbers, highlight=[58]}
+#include <fstream>
+#include <ios>
+#include <iostream>
+#include <limits>
+#include <sstream>
+#include <stdexcept>
+
+int main() {
+  int i = 10;
+  while (std::cin >> i, !std::cin.eof()) {
+    if (std::cin.bad()) {
+      throw std::runtime_error("cin is corrupted");
+    }
+    if (std::cin.fail()) {
+      std::cin.clear();
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      std::cout << "data format is error, please reinput" << std::endl;
+      continue;
+    }
+    std::cout << i << std::endl;
+  }
+  std::cout << "progress termintat" << std::endl;
+
+
+
+
+
+
+  std::string str;
+  while (std::getline(std::cin, str), !std::cin.eof()) {
+    if (std::cin.bad()) {
+      throw std::runtime_error("cin is corrupt");
+    }
+    std::cout << str << std::endl;
+  }
+  std::cout << "progress is terminate" << std::endl;
+
+
+
+  char chr;
+  while (std::cin.get(chr), !std::cin.eof()) {
+    if (std::cin.bad()) {
+      throw std::runtime_error("cin corrupt");
+    }
+    std::cout << chr << std::endl;
+  }
+  std::cout << "progress terminate" << std::endl;
+
+
+
+
+  std::fstream file_stream("hello world");
+  std::ifstream if_stream("hello world", std::ios::in);
+  std::ofstream of_stream("hello world", std::ios::out);
+
+  std::fstream file;
+  file.open("hello world");
+  file.close();  // 文件和socket都是存在内核区间，所以需要close关闭
+}
+
+
+```
+
+```cpp {.line-numbers, highlight=[37]}
+
+#include <fstream>
+#include <ios>
+#include <iostream>
+#include <istream>
+#include <limits>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+
+int main() {
+  std::string file_name;
+  std::string file_content;
+  while (std::cin >> file_name, !std::cin.eof()) {
+    if (std::cin.bad()) {
+      throw std::runtime_error("cin is corrupt");
+    }
+
+    std::ifstream open_file(file_name);
+
+    if (open_file.is_open()) {
+      while (std::getline(open_file, file_content), !open_file.eof()) {
+        std::cout << file_content << std::endl;
+      }
+
+      if (open_file.bad()) {
+        throw std::runtime_error("ifstream is corrupt");
+      }
+      open_file.close();
+    } else {
+      open_file.clear();
+      open_file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+      std::cout << "file is not found, please reinput" << std::endl;
+    }
+  }
+}
+
+// windows打不开文件权限受限，如何解决？？？？？？？？？？？
+
+```
+
+```cpp {.line-numbers, highlight=[11]}
+
+#include <fstream>
+#include <ios>
+#include <iostream>
+#include <istream>
+#include <limits>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+
+int main() {
+  // 字符串转整型
+  std::string str("12");
+  std::istringstream istring_stream(str);
+  int i = 0;
+  istring_stream >> i;
+  if (istring_stream.bad()) {
+    throw std::runtime_error("istringstream corrupted");
+  } else if (istring_stream.fail()) {
+    istring_stream.clear();
+    istring_stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    std::cout << "data formate is error " << std::endl;
+  } else {
+    std::cout << i << std::endl;
+  }
+}
+
+```
+
+```cpp {.line-numbers, highlight=[11, 14]}
+#include <fstream>
+#include <ios>
+#include <iostream>
+#include <istream>
+#include <limits>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+
+int main() {
+  // 整型转字符串
+  int a = 200;
+  std::ostringstream ostring_stream;
+  ostring_stream << a << std::endl;  // std::endl为了刷新
+
+  if (ostring_stream.bad()) {
+    throw std::runtime_error("ostringstream is corrupted");
+  }
+  std::cout << ostring_stream.str() << std::endl;
+}
+
+```
+
+```cpp {.line-numbers, highlight=[11]}
+
+#include <fstream>
+#include <ios>
+#include <iostream>
+#include <istream>
+#include <limits>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+
+int main() {
+  // 进行空格字符串分割
+  std::string str("hello world hello wwww");
+  std::string tmp;
+  std::istringstream istring_stream(str);
+  while (istring_stream >> tmp) {
+    std::cout << tmp << std::endl;
+  }
+
+  if (istring_stream.bad()) {
+    throw std::runtime_error("istringstream is corrupted");
+  }
+}
+
+```
+
+```cpp
+
+#include <chrono>
+#include <iostream>
+#include <mutex>
+#include <thread>
+
+#include <__chrono/duration.h>
+
+unsigned nums = 0;
+std::mutex mutex1;
+
+void test() {
+  auto begin_time = std::chrono::system_clock().now();
+  std::lock_guard<std::mutex> guard(mutex1);
+  for (unsigned i = 0; i < 20000000; ++i) {
+    // std::lock_guard<std::mutex> guard(mutex1);
+    ++nums;
+  }
+  auto end_time = std::chrono::system_clock().now();
+  std::chrono::seconds a;
+  std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - begin_time).count() << std::endl;
+}
+
+int main() {
+  std::thread my_thread(test);
+  my_thread.join();
+}
+
+```
+
+- [ ] [汇编程序指令重排](https://www.zhihu.com/question/351434327/answer/2325628399)
+
+```cpp {.line-numbers, highlight=[12]}
+
+#include <chrono>
+#include <iostream>
+#include <mutex>
+#include <thread>
+#include <typeinfo>
+
+#include <__chrono/duration.h>
+
+class Student {};
+
+int main() {
+  // Student& stu();   // 函数声明
+  Student stu;
+  Student& s = stu;
+  int&& i    = 20;
+  std::cout << typeid(s).name() << std::endl;
+}
+
+```
