@@ -2,7 +2,7 @@
 id: khjye3s9bu1xep27usjr338
 title: Cpp_language
 desc: ''
-updated: 1667019409258
+updated: 1667224415922
 created: 1667019409258
 ---
 
@@ -2190,7 +2190,7 @@ int main() {
 
 - [ ] [汇编程序指令重排](https://www.zhihu.com/question/351434327/answer/2325628399)
 
-```cpp {.line-numbers, highlight=[12, 19]}
+```cpp {.line-numbers, highlight=[12, 19-24]}
 
 #include <chrono>
 #include <iostream>
@@ -2211,5 +2211,25 @@ int main() {
 }
 
 // clang++ -O1 -g -fsanitize=address -fno-omit-frame-pointer -o core core.c 检测内存是否泄漏  
+// 先介绍标准把：posix为跨平台移植应用程序源代码的标准，便于
+// 开发人员进行开发，硬件-》操作系统-》--posix,c++11等标注 应用程序（编程语言）
+// clangd就为一个编辑器服务，检测语法，自动补全等写语言功能
+// msys2为模拟linux环境下的一个小型系统，根据posix标准，使得开发跨平台，但有可能为了适应标准，导致硬件性能丧失
+// boost库大部分无需编译成库，直接头文件就可使用，少部分需要编译成库链接使用
+
+```
+
+```cpp
+
+#include <iostream>
+
+#include <boost/type_index.hpp>
+
+using boost::typeindex::type_id_with_cvr;
+
+int main() {
+  int const&& a = 20;
+  std::cout << type_id_with_cvr<decltype(a)>() << std::endl;
+}
 
 ```
