@@ -2,7 +2,7 @@
 id: j1lxx005wb4ryzmqvimkj0v
 title: Modern_cpp
 desc: ''
-updated: 1667654508309
+updated: 1668693057179
 created: 1667228535999
 ---
 
@@ -365,3 +365,5 @@ int main() {
 }
 
 ```
+
+- [ ] ### [返回值类型为右值引用](https://www.zhihu.com/question/22941176)

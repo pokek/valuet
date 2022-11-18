@@ -2,7 +2,7 @@
 id: ji977vg4t7h66afvrppwt8k
 title: Karel_code
 desc: ''
-updated: 1668153879092
+updated: 1668736520739
 created: 1667983505401
 ---
 
@@ -156,3 +156,65 @@ class Solution {
 };
 
 ```
+
+## [69. x 的平方根](https://leetcode.cn/problems/sqrtx/)
+
+```cpp {.line-numbers, highlight=[]}
+
+class Solution {
+ public:
+  int mySqrt(int x) {
+    if (x == 0) {
+      return 0;
+    }
+    unsigned int l = 0;
+    unsigned int r = static_cast<unsigned int>(x) + 1;
+    while (l < r) {
+      unsigned int mid = l + (r - l) / 2;
+      if (mid > (x / mid)) {
+        r = mid;
+      } else if (mid < (x / mid)) {
+        l = mid + 1;
+      } else {
+        return mid;
+      }
+    }
+    return l - 1;
+  }
+};
+
+
+```
+
+## [367. 有效的完全平方数](https://leetcode.cn/problems/valid-perfect-square/)
+
+```cpp {.line-numbers, highlight=[]}
+
+class Solution {
+ public:
+  bool isPerfectSquare(int num) {
+    unsigned int left  = 0;
+    unsigned int right = static_cast<unsigned int>(num) + 1;
+    while (left < right) {
+      unsigned int mid = left + (right - left) / 2;
+      if (mid > num / mid) {
+        right = mid;
+      } else if (mid < num / mid) {
+        left = mid + 1;
+      } else {
+        if (mid * mid == num) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+    return false;
+  }
+};
+
+```
+
+## 疑问
+
+![](/assets/images/2022-11-18-09-55-15.png)
